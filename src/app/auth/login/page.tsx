@@ -7,6 +7,7 @@ import { Mail, Lock,  } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { useToast } from "@/context/ToastContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
+  const { showToast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,12 +29,13 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      showToast("Login gagal, coba cek kembali Email dan Password Anda", "error");
       setLoading(false);
       return;
     }
 
-    router.push("/customer");
+    showToast("Selamat datang kembali!", "success");
+    router.push("/");
     router.refresh();
   };
 

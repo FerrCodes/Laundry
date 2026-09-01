@@ -105,4 +105,20 @@
     outline: 2px solid rgb(var(--primary));
     outline-offset: 0;
   }
+
+  @keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-in {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
 }

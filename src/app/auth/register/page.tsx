@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import AuthSidebar from "@/components/auth/AuthSidebar";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { useToast } from "@/context/ToastContext";
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
@@ -15,15 +16,18 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+  const { showToast } = useToast();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setIsSuccess(false);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -31,17 +35,34 @@ export default function RegisterPage() {
           full_name: fullName,
           role: "customer",
         },
+        emailRedirectTo: `${window.location.origin}/auth/login`,
       },
     });
 
     if (error) {
-      setError(error.message);
       setLoading(false);
+      showToast("Registrasi gagal, pastikan Email dan Password anda masukan benar", "error");
       return;
     }
 
-    router.push("/auth/login");
-    router.refresh();
+    // Cek apakah user perlu verifikasi email
+    if (data?.user && data.user.identities?.length === 0) {
+      // User already exists
+      setError("Email sudah terdaftar. Silakan login.");
+      setLoading(false);
+      showToast("Email sudah terdaftar", "error");
+      return;
+    }
+
+    // Success - email verifikasi terkirim
+    setIsSuccess(true);
+    setLoading(false);
+    showToast("Email verifikasi telah dikirim! Cek inbox Anda.", "success");
+
+    // Redirect ke login setelah 3 detik
+    setTimeout(() => {
+      router.push("/auth/login");
+    }, 3000);
   };
 
   return (
@@ -57,7 +78,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-md space-y-8">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
               <Sofa className="w-5 h-5 text-white" />
             </div>
             <span className="text-2xl font-bold text-white">LaundryApp</span>
@@ -68,47 +89,60 @@ export default function RegisterPage() {
             <p className="text-gray-400">Daftar sekarang dan mulai pesan laundry</p>
           </div>
 
-          <form onSubmit={handleRegister} className="space-y-6">
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
+          {/* Success Message */}
+          {isSuccess && (
+            <div className="bg-green-500/10 border border-green-500/50 text-green-400 p-4 rounded-xl text-sm space-y-2">
+              <p className="font-semibold">✅ Pendaftaran Berhasil!</p>
+              <p>Kami telah mengirimkan email verifikasi ke <strong>{email}</strong>.</p>
+              <p className="text-xs text-gray-400">Silakan cek inbox atau folder spam Anda.</p>
+              <p className="text-xs text-gray-400">Anda akan dialihkan ke halaman login dalam 3 detik...</p>
+            </div>
+          )}
 
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleRegister} className="space-y-6">
             <Input
               label="Nama Lengkap"
               type="text"
               icon={User}
-              placeholder="Nama Lengkap"
+              placeholder="masukkan nama lengkap"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
+              disabled={isSuccess}
             />
 
             <Input
               label="Email"
               type="email"
               icon={Mail}
-              placeholder="contoh@gmail.com"
+              placeholder="masukkan email Anda"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isSuccess}
             />
 
             <Input
               label="Password"
               type="password"
               icon={Lock}
-              placeholder="Minimal 8 Karakter"
+              placeholder="minimal 6 karakter"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               showPasswordToggle
               required
-              minLength={8}
+              minLength={6}
+              disabled={isSuccess}
             />
 
-            <Button type="submit" loading={loading} fullWidth>
-              Daftar
+            <Button type="submit" loading={loading} fullWidth disabled={isSuccess}>
+              {isSuccess ? "✅ Terkirim!" : "Daftar"}
             </Button>
           </form>
 
@@ -118,7 +152,7 @@ export default function RegisterPage() {
               href="/auth/login"
               className="text-blue-400 hover:text-blue-300 font-medium transition"
             >
-              Masuk
+              Login di sini
             </Link>
           </p>
         </div>

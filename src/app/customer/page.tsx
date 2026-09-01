@@ -1,20 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-
-export default async function CustomerPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/auth/login");
-  }
-
+export default function CustomerPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Halaman Customer</h1>
-        <p className="mt-2 text-gray-600">Selamat datang, {user.email}!</p>
-      </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h1 className="text-3xl font-bold text-white">Halaman Customer</h1>
+      <p className="text-gray-400 mt-2">Selamat datang di aplikasi laundry online.</p>
     </div>
   );
 }
