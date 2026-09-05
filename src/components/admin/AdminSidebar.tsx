@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/context/ToastContext";
+import Modal from "@/components/ui/Modal";
 
 export default function AdminSidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,6 +25,8 @@ export default function AdminSidebar() {
   const router = useRouter();
   const supabase = createClient();
   const { showToast } = useToast();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -36,11 +39,14 @@ export default function AdminSidebar() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    showToast("Berhasil logout", "success");
-    router.push("/auth/login");
-    router.refresh();
-  };
+  setLoading(true);
+  await supabase.auth.signOut();
+  showToast("Berhasil logout", "success");
+  setIsLogoutModalOpen(false);
+  setLoading(false);
+  router.push("/auth/login");
+  router.refresh();
+};
 
   return (
     <>
@@ -123,7 +129,7 @@ export default function AdminSidebar() {
               </div>
             </div>
             <button
-              onClick={handleLogout}
+              onClick={() => setIsLogoutModalOpen(true)}
               className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition"
             >
               <LogOut className="w-5 h-5" />
@@ -132,6 +138,17 @@ export default function AdminSidebar() {
           </div>
         </div>
       </aside>
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        title="Konfirmasi Logout"
+        description="Apakah Anda yakin ingin keluar dari akun Anda?"
+        confirmText="Ya, Logout"
+        cancelText="Kembali"
+        confirmVariant="danger"
+        isLoading={loading}
+      />
     </>
   );
 }

@@ -2,19 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, Sofa, User, LogOut, Package, Home, LayoutGrid } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
+import Modal from "@/components/ui/Modal";
 
 export default function CustomerNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
-  const { showToast } = useToast()
+  const { showToast } = useToast();
 
   const navigation = [
     { name: "Home", href: "/customer", icon: Home },
@@ -25,17 +27,20 @@ export default function CustomerNavbar() {
   const isActive = (href: string) => pathname === href;
 
   const handleLogout = async () => {
+    setLoading(true);
     await supabase.auth.signOut();
     showToast("Berhasil logout", "success");
+    setIsLogoutModalOpen(false);
+    setLoading(false);
     router.push("/auth/login");
     router.refresh();
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/80 backdrop-blur-lg border-b border-[#333333]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/80 backdrop-blur-lg border-b border-[#333333]">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
         <div className="flex items-center justify-between h-16">
-
           {/* Logo */}
           <Link href="/customer" className="flex items-center gap-2">
             <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
@@ -69,7 +74,6 @@ export default function CustomerNavbar() {
 
           {/* Profile & Mobile Menu */}
           <div className="flex items-center gap-2">
-            {/* Profile Dropdown (Desktop) */}
             <div className="hidden md:relative md:flex">
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
@@ -84,7 +88,10 @@ export default function CustomerNavbar() {
               {showDropdown && (
                 <div className="absolute right-0 top-12 w-48 bg-[#1A1A1A] border border-[#333333] rounded-xl shadow-xl py-2">
                   <button
-                    onClick={handleLogout}
+                    onClick={() => {
+                      setShowDropdown(false);
+                      setIsLogoutModalOpen(true);
+                    }}
                     className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition"
                   >
                     <LogOut className="w-4 h-4" />
@@ -106,41 +113,59 @@ export default function CustomerNavbar() {
               )}
             </button>
           </div>
+          </div>
         </div>
-      </div>
 
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden border-t border-[#333333] bg-[#0A0A0A] px-4 py-4 space-y-2">
-          {navigation.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition
-                  ${isActive(item.href)
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:bg-[#1A1A1A]"
-                  }
-                `}
-              >
-                <Icon className="w-5 h-5" />
-                {item.name}
-              </Link>
-            );
-          })}
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition"
-          >
-            <LogOut className="w-5 h-5" />
-            Logout
-          </button>
-        </div>
-      )}
-    </nav>
+        {/* Mobile Menu */}
+        {isOpen && (
+          <div className="md:hidden border-t border-[#333333] bg-[#0A0A0A] px-4 py-4 space-y-2">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition
+                    ${isActive(item.href)
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-300 hover:bg-[#1A1A1A]"
+                    }
+                  `}
+                >
+                  <Icon className="w-5 h-5" />
+                  {item.name}
+                </Link>
+              );
+            })}
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                setIsLogoutModalOpen(true);
+              }}
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition"
+            >
+              <LogOut className="w-5 h-5" />
+              Logout
+            </button>
+          </div>
+        
+        )}
+      </nav>
+
+      {/* Logout Modal */}
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        title="Konfirmasi Logout"
+        description="Apakah Anda yakin ingin keluar dari akun Anda?"
+        confirmText="Ya, Logout"
+        cancelText="Kembali"
+        confirmVariant="danger"
+        isLoading={loading}
+      />
+    </>
   );
 }
