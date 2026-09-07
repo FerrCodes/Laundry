@@ -2,28 +2,35 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight, Home, LayoutDashboard } from "lucide-react";
 
 export default function Breadcrumb() {
   const pathname = usePathname();
 
-  // Hanya tampilkan di halaman customer (bukan di customer itu sendiri)
-  if (!pathname.startsWith("/customer") || pathname === "/customer") {
+  // Hanya tampilkan di halaman customer atau admin
+  const isCustomerPage = pathname.startsWith("/customer") && pathname !== "/customer";
+  const isAdminPage = pathname.startsWith("/admin") && pathname !== "/admin";
+
+  if (!isCustomerPage && !isAdminPage) {
     return null;
   }
+
+  const isAdmin = pathname.startsWith("/admin");
 
   const getBreadcrumbs = () => {
     const segments = pathname.split("/").filter(Boolean);
     const breadcrumbs: { label: string; href: string }[] = [];
 
-    // Selalu ada Home/Beranda
+    // Home
     breadcrumbs.push({
-      label: "Beranda",
-      href: "/customer",
+      label: isAdmin ? "Dashboard" : "Beranda",
+      href: isAdmin ? "/admin" : "/customer",
     });
 
-    let currentPath = "/customer";
-    for (let i = 1; i < segments.length; i++) {
+    let currentPath = isAdmin ? "/admin" : "/customer";
+    const startIndex = isAdmin ? 1 : 1;
+
+    for (let i = startIndex; i < segments.length; i++) {
       const segment = segments[i];
       currentPath += `/${segment}`;
 
@@ -33,11 +40,17 @@ export default function Breadcrumb() {
       } else if (segment === "edit") {
         label = "Edit Profil";
       } else if (segment === "orders") {
-        label = "Riwayat Pesanan";
+        label = isAdmin ? "Daftar Order" : "Riwayat Pesanan";
       } else if (segment === "booking") {
         label = "Booking Laundry";
       } else if (segment === "services") {
-        label = "Layanan Laundry";
+        label = isAdmin ? "Kelola Layanan" : "Layanan Laundry";
+      } else if (segment === "customers") {
+        label = "Daftar Customer";
+      } else if (segment === "settings") {
+        label = "Pengaturan";
+      } else if (segment === "new") {
+        label = "Tambah Baru";
       } else {
         // Untuk dynamic routes seperti [id]
         if (segment.startsWith("[") && segment.endsWith("]")) {
@@ -63,7 +76,13 @@ export default function Breadcrumb() {
     <nav className="flex items-center gap-1 text-sm text-gray-400 mb-6 flex-wrap" aria-label="Breadcrumb">
       {breadcrumbs.map((item, index) => (
         <div key={item.href + index} className="flex items-center gap-1">
-          {index === 0 && <Home className="w-3.5 h-3.5" />}
+          {index === 0 && (
+            item.href.includes("/admin") ? (
+              <LayoutDashboard className="w-3.5 h-3.5" />
+            ) : (
+              <Home className="w-3.5 h-3.5" />
+            )
+          )}
           {item.href === "#" ? (
             <span className="text-white font-medium">{item.label}</span>
           ) : (

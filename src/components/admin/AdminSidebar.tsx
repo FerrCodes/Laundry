@@ -14,6 +14,7 @@ import {
   X,
   Sofa,
   User,
+  ChevronUp,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/context/ToastContext";
@@ -21,32 +22,38 @@ import Modal from "@/components/ui/Modal";
 
 export default function AdminSidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
   const { showToast } = useToast();
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const navigation = [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Dashboard", href: "/admin", icon: LayoutDashboard, exact: true },
     { name: "Orders", href: "/admin/orders", icon: Package },
     { name: "Services", href: "/admin/services", icon: Shirt },
     { name: "Customers", href: "/admin/customers", icon: Users },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const isActive = (item: typeof navigation[0]) => {
+    if (item.exact) {
+      return pathname === item.href;
+    }
+    return pathname === item.href || pathname.startsWith(item.href + "/");
+  };
 
   const handleLogout = async () => {
-  setLoading(true);
-  await supabase.auth.signOut();
-  showToast("Berhasil logout", "success");
-  setIsLogoutModalOpen(false);
-  setLoading(false);
-  router.push("/auth/login");
-  router.refresh();
-};
+    setLoading(true);
+    await supabase.auth.signOut();
+    showToast("Berhasil logout", "success");
+    setIsLogoutModalOpen(false);
+    setLoading(false);
+    router.push("/auth/login");
+    router.refresh();
+  };
 
   return (
     <>
@@ -95,7 +102,7 @@ export default function AdminSidebar() {
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
               const Icon = item.icon;
-              const active = isActive(item.href);
+              const active = isActive(item);
               return (
                 <Link
                   key={item.name}
@@ -117,27 +124,49 @@ export default function AdminSidebar() {
             })}
           </nav>
 
-          {/* Bottom: User Profile & Logout */}
-          <div className="border-t border-[#333333] p-4 space-y-3">
-            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-[#1A1A1A]">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">Admin</p>
-                <p className="text-xs text-gray-400 truncate">admin@laundry.com</p>
-              </div>
+          {/* Bottom: User Dropdown (Muncul ke ATAS) */}
+          <div className="border-t border-[#333333] p-4">
+            <div className="relative">
+              {/* Tombol User */}
+              <button
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                className="flex items-center gap-3 w-full px-3 py-2 rounded-xl bg-[#1A1A1A] hover:bg-[#2A2A2A] transition"
+              >
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium text-white truncate">Admin</p>
+                  <p className="text-xs text-gray-400 truncate">admin@laundry.com</p>
+                </div>
+                <ChevronUp
+                  className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                    showUserDropdown ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Dropdown - Muncul ke ATAS */}
+              {showUserDropdown && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#1A1A1A] border border-[#333333] rounded-xl shadow-xl py-2">
+                  <button
+                    onClick={() => {
+                      setShowUserDropdown(false);
+                      setIsLogoutModalOpen(true);
+                    }}
+                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => setIsLogoutModalOpen(true)}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition"
-            >
-              <LogOut className="w-5 h-5" />
-              Logout
-            </button>
           </div>
         </div>
       </aside>
+
+      {/* Logout Modal */}
       <Modal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}

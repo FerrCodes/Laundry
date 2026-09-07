@@ -43,9 +43,6 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center py-16 bg-[#1A1A1A] rounded-xl border border-[#333333]">
           <p className="text-gray-400">Order tidak ditemukan</p>
-          <Link href="/admin/orders" className="text-blue-400 hover:text-blue-300 mt-4 inline-block">
-            Kembali ke Daftar Order
-          </Link>
         </div>
       </div>
     );
