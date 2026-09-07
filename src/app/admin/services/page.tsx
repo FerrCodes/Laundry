@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAllServices } from "@/lib/services/admin-service-service";
 import Link from "next/link";
-import { Package, Plus, Edit, Trash2, Power, PowerOff } from "lucide-react";
+import { Package, Plus, Edit, } from "lucide-react";
 import DeleteServiceButton from "@/components/admin/DeleteServiceButton";
 import ToggleServiceButton from "@/components/admin/ToggleServiceButton";
 
@@ -81,7 +81,7 @@ export default async function AdminServicesPage() {
                       <td className="py-3 px-4">
                         <span className="font-medium text-white">{service.name}</span>
                       </td>
-                      <td className="py-3 px-4 text-gray-400 text-xs hidden md:table-cell max-w-[200px] truncate">
+                      <td className="py-3 px-4 text-gray-400 text-xs hidden md:table-cell truncate">
                         {service.description}
                       </td>
                       <td className="py-3 px-4">

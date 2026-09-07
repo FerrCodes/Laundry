@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAllCustomers } from "@/lib/services/admin-customer-service";
-import { Users, Package, DollarSign, Calendar } from "lucide-react";
+import { Users, } from "lucide-react";
 import Link from "next/link";
 
 export default async function AdminCustomersPage() {

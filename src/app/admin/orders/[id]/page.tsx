@@ -2,7 +2,22 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAdminOrderById } from "@/lib/services/admin-order-service";
 import Link from "next/link";
-import { ArrowLeft, Package, Weight, MapPin, FileText, Clock, Calendar, User } from "lucide-react";
+import {
+  ArrowLeft,
+  Package,
+  Weight,
+  MapPin,
+  FileText,
+  Clock,
+  Calendar,
+  User,
+  CreditCard,
+  QrCode,
+  Wallet,
+  DollarSign,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import OrderStatusBadge from "@/components/admin/OrderStatusBadge";
 import UpdateStatusForm from "@/components/admin/UpdateStatusForm";
 
@@ -160,6 +175,74 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
               <span className="text-gray-300">{formatPrice(order.service.price_per_kg)}</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* PAYMENT STATUS SECTION */}
+      <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6 mt-6">
+        <h3 className="text-sm font-medium text-gray-400 mb-4">Status Pembayaran</h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CreditCard className="w-4 h-4 text-blue-400" />
+              <div>
+                <p className="text-xs text-gray-500">Metode Pembayaran</p>
+                <p className="text-sm text-white capitalize flex items-center gap-2">
+                  {order.payment_method === "qris" && <QrCode className="w-4 h-4" />}
+                  {order.payment_method === "ewallet" && <Wallet className="w-4 h-4" />}
+                  {order.payment_method === "cash" && <DollarSign className="w-4 h-4" />}
+                  {order.payment_method || "-"}
+                </p>
+              </div>
+            </div>
+            <span
+              className={`text-xs px-2 py-1 rounded-full ${
+                order.payment_status === "paid"
+                  ? "bg-green-500/20 text-green-400"
+                  : order.payment_status === "pending"
+                  ? "bg-yellow-500/20 text-yellow-400"
+                  : "bg-red-500/20 text-red-400"
+              }`}
+            >
+              {order.payment_status === "paid"
+                ? "Lunas"
+                : order.payment_status === "pending"
+                ? "Menunggu"
+                : "Belum Dibayar"}
+            </span>
+          </div>
+
+          {/* Tombol Konfirmasi Pembayaran */}
+          {order.payment_status !== "paid" && order.payment_status !== "failed" && (
+            <form action={async () => {
+              'use server';
+              const { confirmPaymentByOrderId } = await import("@/lib/services/payment-service");
+              await confirmPaymentByOrderId(order.id);
+              redirect(`/admin/orders/${order.id}`);
+            }}>
+              <button
+                type="submit"
+                className="w-full mt-3 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition flex items-center justify-center gap-2"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Konfirmasi Pembayaran
+              </button>
+            </form>
+          )}
+
+          {order.payment_status === "paid" && (
+            <div className="mt-3 p-3 bg-green-500/10 border border-green-500/30 rounded-xl flex items-center justify-center gap-2 text-green-400 text-sm">
+              <CheckCircle className="w-4 h-4" />
+              Pembayaran sudah dikonfirmasi
+            </div>
+          )}
+
+          {order.payment_status === "failed" && (
+            <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-center gap-2 text-red-400 text-sm">
+              <XCircle className="w-4 h-4" />
+              Pembayaran gagal
+            </div>
+          )}
         </div>
       </div>
     </div>

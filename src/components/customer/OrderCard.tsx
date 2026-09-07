@@ -1,7 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { Package, Weight, MapPin, Calendar, ArrowRight } from "lucide-react";
+import {
+  Package,
+  Weight,
+  MapPin,
+  Calendar,
+  ArrowRight,
+  Clock,
+  CheckCircle,
+  RotateCw,
+  Wind,
+  Shirt,
+  PackageCheck,
+  Truck,
+  XCircle,
+} from "lucide-react";
 
 interface OrderCardProps {
   id: string;
@@ -32,24 +46,53 @@ export default function OrderCard({
     }).format(price);
   };
 
-  const getStatusInfo = (status: string) => {
-    const statusMap: Record<
-      string,
-      { label: string; color: string; icon: string }
-    > = {
-      pending: { label: "Menunggu Konfirmasi", color: "bg-yellow-500/20 text-yellow-400", icon: "⏳" },
-      confirmed: { label: "Dikonfirmasi", color: "bg-blue-500/20 text-blue-400", icon: "✅" },
-      washing: { label: "Dicuci", color: "bg-purple-500/20 text-purple-400", icon: "🔄" },
-      drying: { label: "Dikeringkan", color: "bg-orange-500/20 text-orange-400", icon: "🌀" },
-      ironing: { label: "Disetrika", color: "bg-pink-500/20 text-pink-400", icon: "👕" },
-      ready: { label: "Siap Diambil", color: "bg-green-500/20 text-green-400", icon: "✅" },
-      picked_up: { label: "Sudah Diambil", color: "bg-gray-500/20 text-gray-400", icon: "📦" },
-      cancelled: { label: "Dibatalkan", color: "bg-red-500/20 text-red-400", icon: "❌" },
-    };
-    return statusMap[status] || statusMap.pending;
+  const statusMap: Record<
+    string,
+    { label: string; color: string; icon: React.ReactNode }
+  > = {
+    pending: {
+      label: "Menunggu Konfirmasi",
+      color: "bg-yellow-500/20 text-yellow-400",
+      icon: <Clock className="w-3.5 h-3.5" />,
+    },
+    confirmed: {
+      label: "Dikonfirmasi",
+      color: "bg-blue-500/20 text-blue-400",
+      icon: <CheckCircle className="w-3.5 h-3.5" />,
+    },
+    washing: {
+      label: "Dicuci",
+      color: "bg-purple-500/20 text-purple-400",
+      icon: <RotateCw className="w-3.5 h-3.5" />,
+    },
+    drying: {
+      label: "Dikeringkan",
+      color: "bg-orange-500/20 text-orange-400",
+      icon: <Wind className="w-3.5 h-3.5" />,
+    },
+    ironing: {
+      label: "Disetrika",
+      color: "bg-pink-500/20 text-pink-400",
+      icon: <Shirt className="w-3.5 h-3.5" />,
+    },
+    ready: {
+      label: "Siap Diambil",
+      color: "bg-green-500/20 text-green-400",
+      icon: <PackageCheck className="w-3.5 h-3.5" />,
+    },
+    picked_up: {
+      label: "Sudah Diambil",
+      color: "bg-gray-500/20 text-gray-400",
+      icon: <Truck className="w-3.5 h-3.5" />,
+    },
+    cancelled: {
+      label: "Dibatalkan",
+      color: "bg-red-500/20 text-red-400",
+      icon: <XCircle className="w-3.5 h-3.5" />,
+    },
   };
 
-  const statusInfo = getStatusInfo(status);
+  const statusInfo = statusMap[status] || statusMap.pending;
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("id-ID", {
@@ -69,8 +112,11 @@ export default function OrderCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
             <span className="text-sm font-mono text-gray-400">{order_number}</span>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${statusInfo.color}`}>
-              {statusInfo.icon} {statusInfo.label}
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full ${statusInfo.color} inline-flex items-center gap-1`}
+            >
+              {statusInfo.icon}
+              {statusInfo.label}
             </span>
           </div>
 
@@ -95,7 +141,7 @@ export default function OrderCard({
 
           <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
             <MapPin className="w-3 h-3" />
-            <span className="truncate max-w-[200px]">{pick_up_address}</span>
+            <span className="truncate max-w-50">{pick_up_address}</span>
           </div>
         </div>
 

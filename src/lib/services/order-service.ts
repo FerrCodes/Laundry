@@ -10,6 +10,8 @@ export interface Order {
   notes: string | null;
   pick_up_address: string;
   status: "pending" | "confirmed" | "washing" | "drying" | "ironing" | "ready" | "picked_up" | "cancelled";
+  payment_status: "unpaid" | "pending" | "paid" | "failed"; // ✅ TAMBAHKAN
+  payment_method: "qris" | "ewallet" | "cash" | null;
   order_date: string;
   created_at: string;
   updated_at: string;

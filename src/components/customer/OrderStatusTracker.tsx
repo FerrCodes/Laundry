@@ -23,7 +23,7 @@ export default function OrderStatusTracker({ currentStatus }: OrderStatusTracker
   if (isCancelled) {
     return (
       <div className="text-center py-4">
-        <div className="text-red-400 text-lg font-semibold">❌ Pesanan Dibatalkan</div>
+        <div className="text-red-400 text-lg font-semibold">Pesanan Dibatalkan</div>
       </div>
     );
   }

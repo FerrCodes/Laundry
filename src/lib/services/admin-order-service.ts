@@ -22,9 +22,10 @@ export interface AdminOrderDetail extends AdminOrder {
     price_per_kg: number;
     duration_hours: number;
   };
+  payment_status: "unpaid" | "pending" | "paid" | "failed";
+  payment_method: "qris" | "ewallet" | "cash" | null;
 }
 
-// Tipe untuk response dari Supabase
 interface OrderWithRelations {
   id: string;
   order_number: string;
@@ -37,6 +38,8 @@ interface OrderWithRelations {
   updated_at: string;
   customer_id: string;
   service_id: string;
+  payment_status: "unpaid" | "pending" | "paid" | "failed";
+  payment_method: "qris" | "ewallet" | "cash" | null;
   profiles: { full_name: string }[];
   laundry_services: { name: string }[];
 }
@@ -58,6 +61,8 @@ export async function getAllOrders(status?: string): Promise<AdminOrder[]> {
       updated_at,
       customer_id,
       service_id,
+      payment_status,
+      payment_method,
       profiles!customer_id (
         full_name
       ),
@@ -113,6 +118,8 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
       updated_at,
       customer_id,
       service_id,
+      payment_status,
+      payment_method,
       profiles!customer_id (
         full_name
       ),
@@ -132,7 +139,12 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
   }
 
   const order = data as OrderWithRelations & {
-    laundry_services: { name: string; description: string; price_per_kg: number; duration_hours: number }[];
+    laundry_services: {
+      name: string;
+      description: string;
+      price_per_kg: number;
+      duration_hours: number;
+    }[];
   };
 
   return {
@@ -148,6 +160,8 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
     notes: order.notes,
     created_at: order.created_at,
     updated_at: order.updated_at,
+    payment_status: order.payment_status || "unpaid",
+    payment_method: order.payment_method || null,
     service: {
       name: order.laundry_services?.[0]?.name || "Layanan",
       description: order.laundry_services?.[0]?.description || "",

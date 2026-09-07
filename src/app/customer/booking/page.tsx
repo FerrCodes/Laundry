@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Package, Weight, MapPin, FileText, Clock } from "lucide-react";
+import { Package, Weight, MapPin, FileText, Clock, QrCode, Wallet, DollarSign } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/context/ToastContext";
 import Button from "@/components/ui/Button";
@@ -31,8 +30,8 @@ export default function BookingPage() {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingServices, setLoadingServices] = useState(true);
-  const [user, setUser] = useState<User | null>(null); // ✅ Sudah diperbaiki
-
+  const [user, setUser] = useState<User | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string>("qris");
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -77,7 +76,8 @@ export default function BookingPage() {
     };
 
     fetchData();
-  }, [serviceId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serviceId, router, showToast]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -120,9 +120,23 @@ export default function BookingPage() {
         notes: notes.trim() || null,
         pick_up_address: address.trim(),
         status: "pending",
+        payment_method: paymentMethod,
+        payment_status: "unpaid",
+        order_number: `LAU-${Date.now().toString().slice(-8)}`,
       })
       .select()
       .single();
+
+    // Setelah order berhasil, buat payment record
+    if (data) {
+      await supabase.from("payments").insert({
+        order_id: data.id,
+        amount: totalPrice,
+        payment_method: paymentMethod,
+        status: "pending",
+        qris_code: `QRIS-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+      });
+    }
 
     if (error) {
       console.error("Error creating order:", error);
@@ -155,13 +169,6 @@ export default function BookingPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Back Button */}
-      <Link
-        href="/customer"
-        className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Kembali ke Beranda
-      </Link>
 
       <h1 className="text-3xl font-bold text-white mb-2">Buat Pesanan Laundry</h1>
       <p className="text-gray-400 mb-8">Isi form di bawah untuk memesan laundry kiloan</p>
@@ -236,9 +243,59 @@ export default function BookingPage() {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="Masukkan alamat lengkap untuk penjemputan"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#0A0A0A] border border-[#333333] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                    className="w-full pl-10 pr-3 py-2.5 bg-[#0A0A0A] border border-[#333333] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
+                </div>
+              </div>
+
+              {/* Metode Pembayaran */}
+              <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  Metode Pembayaran
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("qris")}
+                    className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
+                      paymentMethod === "qris"
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-[#333333] hover:border-[#555555]"
+                    }`}
+                  >
+                    <QrCode className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === "qris" ? "text-blue-400" : "text-gray-400"}`} />
+                    <p className="text-sm font-medium text-white">QRIS</p>
+                    <p className="text-xs text-gray-500">Scan & Bayar</p>
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("ewallet")}
+                    className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
+                      paymentMethod === "ewallet"
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-[#333333] hover:border-[#555555]"
+                    }`}
+                  >
+                    <Wallet className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === "ewallet" ? "text-blue-400" : "text-gray-400"}`} />
+                    <p className="text-sm font-medium text-white">E-Wallet</p>
+                    <p className="text-xs text-gray-500">OVO, Gopay, DANA</p>
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("cash")}
+                    className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
+                      paymentMethod === "cash"
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-[#333333] hover:border-[#555555]"
+                    }`}
+                  >
+                    <DollarSign className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === "cash" ? "text-blue-400" : "text-gray-400"}`} />
+                    <p className="text-sm font-medium text-white">Cash</p>
+                    <p className="text-xs text-gray-500">Bayar Langsung</p>
+                  </button>
                 </div>
               </div>
 
@@ -252,7 +309,7 @@ export default function BookingPage() {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Catatan khusus untuk laundry (misal: jangan pakai pewangi, dll)"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#0A0A0A] border border-[#333333] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                    className="w-full pl-10 pr-3 py-2.5 bg-[#0A0A0A] border border-[#333333] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>

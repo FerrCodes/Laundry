@@ -39,80 +39,93 @@ export default function CustomerNavbar() {
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/80 backdrop-blur-lg border-b border-[#333333]">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/customer" className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
-              <Sofa className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white hidden sm:block">LaundryApp</span>
-          </Link>
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/customer" className="flex items-center gap-2">
+              <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+                <Sofa className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-white hidden sm:block">LaundryApp</span>
+            </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`
-                    flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200
-                    ${isActive(item.href)
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:text-white hover:bg-[#1A1A1A]"
-                    }
-                  `}
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Profile & Mobile Menu */}
-          <div className="flex items-center gap-2">
-            <div className="hidden md:relative md:flex">
-              <button
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#1A1A1A] transition"
-              >
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-sm text-gray-300">Akun</span>
-              </button>
-
-              {showDropdown && (
-                <div className="absolute right-0 top-12 w-48 bg-[#1A1A1A] border border-[#333333] rounded-xl shadow-xl py-2">
-                  <button
-                    onClick={() => {
-                      setShowDropdown(false);
-                      setIsLogoutModalOpen(true);
-                    }}
-                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition"
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-1">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`
+                      flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200
+                      ${isActive(item.href)
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:text-white hover:bg-[#1A1A1A]"
+                      }
+                    `}
                   >
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                  </button>
-                </div>
-              )}
+                    <Icon className="w-4 h-4" />
+                    {item.name}
+                  </Link>
+                );
+              })}
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden p-2 rounded-xl hover:bg-[#1A1A1A] transition"
-            >
-              {isOpen ? (
-                <X className="w-6 h-6 text-white" />
-              ) : (
-                <Menu className="w-6 h-6 text-white" />
-              )}
-            </button>
-          </div>
+            {/* Profile & Mobile Menu */}
+            <div className="flex items-center gap-2">
+              {/* Profile Dropdown (Desktop) - HOVER */}
+              <div
+                className="hidden md:relative md:flex"
+                onMouseEnter={() => setShowDropdown(true)}
+                onMouseLeave={() => setShowDropdown(false)}
+              >
+                <button
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#1A1A1A] transition"
+                >
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-sm text-gray-300">Akun</span>
+                </button>
+
+                {showDropdown && (
+                  <div className="absolute right-0 top-12 w-48 bg-[#1A1A1A] border border-[#333333] rounded-xl shadow-xl py-2">
+                    <Link
+                      href="/customer/profile"
+                      onClick={() => setShowDropdown(false)}
+                      className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-300 hover:bg-[#333333] transition"
+                    >
+                      <User className="w-4 h-4" />
+                      Profilku
+                    </Link>
+                    <hr className="border-[#333333] my-1" />
+                    <button
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setIsLogoutModalOpen(true);
+                      }}
+                      className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="md:hidden p-2 rounded-xl hover:bg-[#1A1A1A] transition"
+              >
+                {isOpen ? (
+                  <X className="w-6 h-6 text-white" />
+                ) : (
+                  <Menu className="w-6 h-6 text-white" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -150,7 +163,6 @@ export default function CustomerNavbar() {
               Logout
             </button>
           </div>
-        
         )}
       </nav>
 
