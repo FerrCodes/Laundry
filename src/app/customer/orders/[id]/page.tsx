@@ -227,7 +227,6 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 type="submit"
                 className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition flex items-center justify-center gap-2"
               >
-                <CreditCard className="w-4 h-4" />
                 Bayar Sekarang
               </button>
             </form>
