@@ -1,6 +1,11 @@
 # LaundryApp - Aplikasi Booking Laundry Online
 
-Web App modern untuk booking laundry kiloan dengan sistem pembayaran terintegrasi (Midtrans)
+Web App modern untuk booking laundry kiloan dengan sistem pembayaran terintegrasi Midtrans.
+
+---
+
+## ⚠️ Catatan:
+Projek ini dibuat untuk tujuan pembelajaran dan development. Untuk penggunaan production masih tahap finising keseluruhannya dan serta Fiturnya.
 
 ---
 
@@ -45,4 +50,14 @@ Web App modern untuk booking laundry kiloan dengan sistem pembayaran terintegras
 | Vercel | Deployment |
 
 ---
+
+## 📄 License
+
+MIT © 2026 Feri Ferdianto
+
+---
+
+## Credit
+
+- **Developer:** [Feri](https://www.instagram.com/imnotferrriii/)
 
