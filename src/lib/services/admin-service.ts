@@ -26,7 +26,7 @@ interface OrderWithProfile {
   customer_id: string;
   profiles: {
     full_name: string;
-  }[]; // ⬅️ Array of objects
+  }[];
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {

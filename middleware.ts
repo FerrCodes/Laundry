@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export async function middleware(request: NextRequest) {
   console.log("========================================");
-  console.log("🚀 MIDDLEWARE JALAN - Path:", request.nextUrl.pathname);
+  console.log("MIDDLEWARE JALAN - Path:", request.nextUrl.pathname);
 
   let response = NextResponse.next({
     request: {
@@ -42,10 +42,10 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   
-  console.log("🔍 User:", user?.email || "Tidak ada user");
-  console.log("🆔 User ID:", user?.id || "Tidak ada ID");
+  console.log("User:", user?.email || "Tidak ada user");
+  console.log("User ID:", user?.id || "Tidak ada ID");
 
   const pathname = request.nextUrl.pathname;
   const isAuthRoute = pathname.startsWith("/auth");
@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  console.log("✅ User login:", user.email);
+  console.log("User login:", user.email);
 
   // Ambil role dari database - PAKAI maybeSingle()
   const { data: profile, error: profileError } = await supabase
@@ -74,11 +74,11 @@ export async function middleware(request: NextRequest) {
   console.log("❌ Profile error:", profileError?.message || "Tidak ada error");
 
   const role = profile?.role || "customer";
-  console.log("🔍 Role dari database:", role);
+  console.log("Role dari database:", role);
 
   // Jika akses halaman auth (login/register)
   if (isAuthRoute) {
-    console.log("📍 Halaman auth, redirect ke role");
+    console.log("Halaman auth, redirect ke role");
     if (role === "admin") {
       return NextResponse.redirect(new URL("/admin", request.url));
     }
@@ -87,7 +87,7 @@ export async function middleware(request: NextRequest) {
 
   // Jika root path (/)
   if (pathname === "/") {
-    console.log("📍 Root path");
+    console.log("Root path");
     if (role === "admin") {
       return NextResponse.redirect(new URL("/admin", request.url));
     }
@@ -106,7 +106,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/customer", request.url));
   }
 
-  console.log("✅ Lanjut ke:", pathname);
+  console.log("Lanjut ke:", pathname);
   return response;
 }
 
