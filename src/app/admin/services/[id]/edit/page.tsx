@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import ServiceForm from "@/components/admin/ServiceForm";
 import { getServiceById } from "@/lib/services/admin-service-service";
 

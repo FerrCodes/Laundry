@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getCustomerById } from "@/lib/services/admin-customer-service";
-import Link from "next/link";
-import { ArrowLeft, Mail, Phone, MapPin, Calendar, Package, DollarSign, User } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, Package, DollarSign, User } from "lucide-react";
 
 interface CustomerDetailPageProps {
   params: Promise<{
@@ -50,13 +49,6 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Back Button */}
-      <Link
-        href="/admin/customers"
-        className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Kembali ke Daftar Customer
-      </Link>
 
       <h1 className="text-2xl font-bold text-white mb-6">Detail Customer</h1>
 

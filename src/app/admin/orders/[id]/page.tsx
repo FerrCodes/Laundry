@@ -1,9 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAdminOrderById } from "@/lib/services/admin-order-service";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Package,
   Weight,
   MapPin,
@@ -68,15 +66,6 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Back Button */}
-      <Link
-        href="/admin/orders"
-        className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Kembali ke Daftar Order
-      </Link>
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

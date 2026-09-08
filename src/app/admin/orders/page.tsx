@@ -62,9 +62,6 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
       )
     : orders;
 
-  // Get current status label
-  const currentStatusLabel = statusOptions.find((opt) => opt.value === (status || "all"))?.label || "Semua";
-
   return (
     <div>
       {/* Header */}
