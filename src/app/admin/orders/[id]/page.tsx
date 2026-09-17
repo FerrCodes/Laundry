@@ -4,9 +4,7 @@ import {
   getAdminOrderById,
   confirmPayment,
 } from "@/lib/services/admin-actions";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Package,
   Weight,
   MapPin,
@@ -46,9 +44,6 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center py-16 bg-[#1A1A1A] rounded-xl border border-[#333333]">
           <p className="text-gray-400">Order tidak ditemukan</p>
-          <Link href="/admin/orders" className="text-blue-400 hover:text-blue-300 mt-4 inline-block">
-            Kembali ke Daftar Order
-          </Link>
         </div>
       </div>
     );
@@ -74,14 +69,6 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <Link
-        href="/admin/orders"
-        className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Kembali ke Daftar Order
-      </Link>
-
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Detail Order</h1>

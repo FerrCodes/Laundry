@@ -12,7 +12,6 @@ import {
   LogOut,
   Menu,
   X,
-  Sofa,
   User,
   ChevronUp,
 } from "lucide-react";
@@ -88,9 +87,6 @@ export default function AdminSidebar() {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center gap-3 px-6 py-6 border-b border-[#333333]">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-              <Sofa className="w-5 h-5 text-white" />
-            </div>
             <span className="text-xl font-bold text-white">LaundryApp</span>
             <span className="ml-auto text-xs px-2 py-1 bg-blue-600/20 text-blue-400 rounded-full">
               Admin

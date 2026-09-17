@@ -1,8 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getCustomerById } from "@/lib/services/admin-customer-actions";
-import Link from "next/link";
-import { ArrowLeft, Mail, Phone, MapPin, Calendar, Package, DollarSign, User } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, Package, DollarSign, User } from "lucide-react";
 
 interface CustomerDetailPageProps {
   params: Promise<{
@@ -25,9 +24,6 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center py-16 bg-[#1A1A1A] rounded-xl border border-[#333333]">
           <p className="text-gray-400">Customer tidak ditemukan</p>
-          <Link href="/admin/customers" className="text-blue-400 hover:text-blue-300 mt-4 inline-block">
-            Kembali ke Daftar Customer
-          </Link>
         </div>
       </div>
     );
@@ -51,16 +47,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <Link
-        href="/admin/customers"
-        className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Kembali ke Daftar Customer
-      </Link>
-
       <h1 className="text-2xl font-bold text-white mb-6">Detail Customer</h1>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
           <h3 className="text-sm font-medium text-gray-400 mb-4">Informasi Customer</h3>

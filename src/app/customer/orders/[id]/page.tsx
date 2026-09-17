@@ -172,7 +172,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             <h3 className="text-sm font-medium text-white">Pembayaran</h3>
           </div>
           <span className={`text-xs px-2 py-1 rounded-full ${isPaid ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
-            {isPaid ? "✅ Lunas" : "⏳ Menunggu Pembayaran"}
+            {isPaid ? "Lunas" : "Menunggu Pembayaran"}
           </span>
         </div>
 
@@ -208,7 +208,6 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 type="submit"
                 className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition flex items-center justify-center gap-2"
               >
-                <CreditCard className="w-4 h-4" />
                 Bayar Sekarang
               </button>
             </form>
