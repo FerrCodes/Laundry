@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { deleteService } from "@/lib/services/admin-service-actions";
 import { useToast } from "@/context/ToastContext";
 import Modal from "@/components/ui/Modal";
 
@@ -16,18 +16,13 @@ export default function DeleteServiceButton({ serviceId, serviceName }: DeleteSe
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
   const { showToast } = useToast();
 
   const handleDelete = async () => {
     setLoading(true);
+    const result = await deleteService(serviceId);
 
-    const { error } = await supabase
-      .from("laundry_services")
-      .delete()
-      .eq("id", serviceId);
-
-    if (error) {
+    if (!result.success) {
       showToast("Gagal menghapus layanan", "error");
       setLoading(false);
       setIsModalOpen(false);

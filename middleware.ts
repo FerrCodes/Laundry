@@ -1,125 +1,58 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { auth } from "@/lib/auth";
+import { NextResponse } from "next/server";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export async function middleware(request: NextRequest) {
-  console.log("MIDDLEWARE JALAN 💀 - Path:", request.nextUrl.pathname);
+export default auth((req) => {
+  const { nextUrl } = req;
+  const isLoggedIn = !!req.auth;
+  const role = req.auth?.user?.role;
 
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
+  // 🔥 DEBUG
+  console.log("🔍 Path:", nextUrl.pathname);
+  console.log("🔍 Logged in:", isLoggedIn);
+  console.log("🔍 Role:", role);
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          request.cookies.set(name, value);
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set(name, value, options);
-        },
-        remove(name: string, options: any) {
-          request.cookies.set(name, "");
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set(name, "", options);
-        },
-      },
-    }
-  );
-
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
-  console.log("User:", user?.email || "Tidak ada user");
-  console.log("User Error:", userError?.message || "Tidak ada error");
-
-  const pathname = request.nextUrl.pathname;
+  const pathname = nextUrl.pathname;
   const isAuthRoute = pathname.startsWith("/auth");
   const isAdminRoute = pathname.startsWith("/admin");
   const isCustomerRoute = pathname.startsWith("/customer");
   const isRoot = pathname === "/";
 
-  // PENTING: Jika user tidak ditemukan dan bukan auth route
-  if (!user && !isAuthRoute) {
-    console.log("❌ User belum login, redirect ke /auth/login");
-    return NextResponse.redirect(new URL("/auth/login", request.url));
-  }
-
-  // PENTING: Jika user ditemukan dan di auth route
-  if (user && isAuthRoute) {
-    // Redirect berdasarkan role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    
-    const role = profile?.role || "customer";
-    console.log("Role:", role);
-    
+  // 1. Root path
+  if (isRoot) {
+    if (!isLoggedIn) {
+      return NextResponse.redirect(new URL("/auth/login", nextUrl));
+    }
     if (role === "admin") {
-      return NextResponse.redirect(new URL("/admin", request.url));
+      return NextResponse.redirect(new URL("/admin", nextUrl));
     }
-    return NextResponse.redirect(new URL("/customer", request.url));
+    return NextResponse.redirect(new URL("/customer", nextUrl));
   }
 
-  // PENTING: User ditemukan dan di root (/)
-  if (user && isRoot) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    
-    const role = profile?.role || "customer";
-    console.log("Role at root:", role);
-    
+  // 2. Belum login & akses protected
+  if (!isLoggedIn && (isAdminRoute || isCustomerRoute)) {
+    return NextResponse.redirect(new URL("/auth/login", nextUrl));
+  }
+
+  // 3. Sudah login & akses auth
+  if (isLoggedIn && isAuthRoute) {
     if (role === "admin") {
-      return NextResponse.redirect(new URL("/admin", request.url));
+      return NextResponse.redirect(new URL("/admin", nextUrl));
     }
-    return NextResponse.redirect(new URL("/customer", request.url));
+    return NextResponse.redirect(new URL("/customer", nextUrl));
   }
 
-  // PENTING: Jika user ditemukan, cek role untuk akses halaman
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    
-    const role = profile?.role || "customer";
-    console.log("Role untuk akses:", role, "Path:", pathname);
-
-    // Admin akses customer page
-    if (role === "admin" && isCustomerRoute) {
-      console.log("⚠️ Admin ke customer → redirect ke /admin");
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
-
-    // Customer akses admin page
-    if (role === "customer" && isAdminRoute) {
-      console.log("⚠️ Customer ke admin → redirect ke /customer");
-      return NextResponse.redirect(new URL("/customer", request.url));
-    }
+  // 4. Admin akses customer
+  if (isLoggedIn && role === "admin" && isCustomerRoute) {
+    return NextResponse.redirect(new URL("/admin", nextUrl));
   }
 
-  console.log("✅ Lanjut ke:", pathname);
-  return response;
-}
+  // 5. Customer akses admin
+  if (isLoggedIn && role === "customer" && isAdminRoute) {
+    return NextResponse.redirect(new URL("/customer", nextUrl));
+  }
+
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)"],

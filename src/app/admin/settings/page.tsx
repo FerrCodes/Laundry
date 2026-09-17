@@ -1,28 +1,19 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import {
-  User,
-  Mail,
-  Phone,
-  Key,
-  Store,
-  Edit,
-} from "lucide-react";
+import { User, Mail, Phone, Key, Store, Edit } from "lucide-react";
 
 export default async function AdminSettingsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const profile = await prisma.profile.findUnique({
+    where: { id: session.user.id },
+  });
 
   return (
     <div>
@@ -30,7 +21,6 @@ export default async function AdminSettingsPage() {
       <p className="text-gray-400 mb-8">Kelola pengaturan aplikasi dan akun Anda</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Profil Admin */}
         <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -50,14 +40,14 @@ export default async function AdminSettingsPage() {
               <User className="w-4 h-4 text-gray-500" />
               <div>
                 <p className="text-xs text-gray-500">Nama</p>
-                <p className="text-sm text-white">{profile?.full_name || "-"}</p>
+                <p className="text-sm text-white">{profile?.fullName || "-"}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Mail className="w-4 h-4 text-gray-500" />
               <div>
                 <p className="text-xs text-gray-500">Email</p>
-                <p className="text-sm text-white">{user.email}</p>
+                <p className="text-sm text-white">{profile?.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -70,7 +60,6 @@ export default async function AdminSettingsPage() {
           </div>
         </div>
 
-        {/* Ganti Password */}
         <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -88,20 +77,13 @@ export default async function AdminSettingsPage() {
           <p className="text-sm text-gray-400">
             Ubah password akun admin Anda untuk keamanan.
           </p>
-          <div className="mt-3 text-xs text-gray-500">
-            Terakhir diubah: {user.created_at ? new Date(user.created_at).toLocaleDateString("id-ID") : "-"}
-          </div>
         </div>
       </div>
 
-      {/* Pengaturan Toko (Opsional) */}
       <div className="mt-6 bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Store className="w-5 h-5 text-blue-400" />
-            <h3 className="text-lg font-semibold text-white">Pengaturan Toko</h3>
-          </div>
-          <span className="text-xs text-gray-500">Coming Soon</span>
+        <div className="flex items-center gap-2 mb-4">
+          <Store className="w-5 h-5 text-blue-400" />
+          <h3 className="text-lg font-semibold text-white">Pengaturan Toko</h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -112,13 +94,29 @@ export default async function AdminSettingsPage() {
             <p className="text-xs text-gray-500">Jam Operasional</p>
             <p className="text-sm text-white">08:00 - 20:00</p>
           </div>
-          <div className="sm:col-span-2">
-            <p className="text-xs text-gray-500">Alamat</p>
-            <p className="text-sm text-white">-</p>
-          </div>
         </div>
       </div>
-      
+
+      <div className="mt-6 bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Key className="w-5 h-5 text-blue-400" />
+            <h3 className="text-lg font-semibold text-white">Status Pembayaran</h3>
+          </div>
+          <span
+            className={`text-xs px-2 py-1 rounded-full ${
+              process.env.MIDTRANS_IS_PRODUCTION === "true"
+                ? "bg-green-500/20 text-green-400"
+                : "bg-yellow-500/20 text-yellow-400"
+            }`}
+          >
+            {process.env.MIDTRANS_IS_PRODUCTION === "true" ? "Production" : "Sandbox"}
+          </span>
+        </div>
+        <p className="text-sm text-gray-400 mt-2">
+          Mode {process.env.MIDTRANS_IS_PRODUCTION === "true" ? "Production" : "Sandbox"} aktif.
+        </p>
+      </div>
     </div>
   );
 }

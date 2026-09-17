@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createService, updateService } from "@/lib/services/admin-service-actions";
 import { useToast } from "@/context/ToastContext";
 
 interface ServiceFormProps {
@@ -27,13 +27,11 @@ export default function ServiceForm({ initialData, isEditing = false }: ServiceF
   const [isActive, setIsActive] = useState(initialData?.is_active ?? true);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
   const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validasi
     if (!name.trim()) {
       showToast("Nama layanan wajib diisi", "error");
       return;
@@ -52,32 +50,21 @@ export default function ServiceForm({ initialData, isEditing = false }: ServiceF
     const data = {
       name: name.trim(),
       description: description.trim(),
-      price_per_kg: parseFloat(price),
-      duration_hours: parseInt(duration),
+      pricePerKg: parseFloat(price),
+      durationHours: parseInt(duration),
       category,
-      is_active: isActive,
+      isActive,
     };
 
     let result;
 
     if (isEditing && initialData?.id) {
-      // Update
-      const { error } = await supabase
-        .from("laundry_services")
-        .update(data)
-        .eq("id", initialData.id);
-
-      result = { error };
+      result = await updateService(initialData.id, data);
     } else {
-      // Insert
-      const { error } = await supabase
-        .from("laundry_services")
-        .insert(data);
-
-      result = { error };
+      result = await createService(data);
     }
 
-    if (result.error) {
+    if (!result.success) {
       showToast(isEditing ? "Gagal update layanan" : "Gagal tambah layanan", "error");
       setLoading(false);
       return;
@@ -91,7 +78,6 @@ export default function ServiceForm({ initialData, isEditing = false }: ServiceF
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Nama */}
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-1">
           Nama Layanan <span className="text-red-400">*</span>
@@ -106,11 +92,8 @@ export default function ServiceForm({ initialData, isEditing = false }: ServiceF
         />
       </div>
 
-      {/* Deskripsi */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1">
-          Deskripsi
-        </label>
+        <label className="block text-sm font-medium text-gray-300 mb-1">Deskripsi</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -120,7 +103,6 @@ export default function ServiceForm({ initialData, isEditing = false }: ServiceF
         />
       </div>
 
-      {/* Harga & Durasi */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -157,7 +139,6 @@ export default function ServiceForm({ initialData, isEditing = false }: ServiceF
         </div>
       </div>
 
-      {/* Kategori */}
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-1">
           Kategori <span className="text-red-400">*</span>
@@ -173,11 +154,8 @@ export default function ServiceForm({ initialData, isEditing = false }: ServiceF
         </select>
       </div>
 
-      {/* Status Aktif */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1">
-          Status
-        </label>
+        <label className="block text-sm font-medium text-gray-300 mb-1">Status</label>
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -202,7 +180,6 @@ export default function ServiceForm({ initialData, isEditing = false }: ServiceF
         </div>
       </div>
 
-      {/* Tombol */}
       <div className="flex gap-3 pt-4">
         <button
           type="button"

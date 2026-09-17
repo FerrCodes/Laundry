@@ -1,16 +1,15 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getAllServices } from "@/lib/services/admin-service-service";
+import { getAllServices } from "@/lib/services/admin-service-actions";
 import Link from "next/link";
-import { Package, Plus, Edit, } from "lucide-react";
+import { Package, Plus, Edit } from "lucide-react";
 import DeleteServiceButton from "@/components/admin/DeleteServiceButton";
 import ToggleServiceButton from "@/components/admin/ToggleServiceButton";
 
 export default async function AdminServicesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/login");
   }
 
@@ -35,7 +34,6 @@ export default async function AdminServicesPage() {
 
   return (
     <div>
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-white">Kelola Layanan</h1>
@@ -50,7 +48,6 @@ export default async function AdminServicesPage() {
         </Link>
       </div>
 
-      {/* Table */}
       <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -81,7 +78,7 @@ export default async function AdminServicesPage() {
                       <td className="py-3 px-4">
                         <span className="font-medium text-white">{service.name}</span>
                       </td>
-                      <td className="py-3 px-4 text-gray-400 text-xs hidden md:table-cell truncate">
+                      <td className="py-3 px-4 text-gray-400 text-xs hidden md:table-cell max-w-50 truncate">
                         {service.description}
                       </td>
                       <td className="py-3 px-4">

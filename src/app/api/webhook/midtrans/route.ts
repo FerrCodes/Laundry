@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
+  console.log("🚀 Webhook endpoint dipanggil!");
+
   try {
     const body = await req.json();
-
-    console.log("📩 Webhook received:", body);
+    console.log("📩 Webhook received:", JSON.stringify(body, null, 2));
 
     const {
       order_id,
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
       signature_key,
     } = body;
 
-    // 1. VERIFIKASI SIGNATURE (WAJIB!)
+    // 1. VERIFIKASI SIGNATURE
     const serverKey = process.env.MIDTRANS_SERVER_KEY!;
     const hash = crypto
       .createHash("sha512")
@@ -26,31 +27,24 @@ export async function POST(req: NextRequest) {
 
     if (hash !== signature_key) {
       console.error("❌ Invalid signature");
-      return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     console.log("✅ Signature verified");
 
-    // 2. UPDATE STATUS ORDER
-    const supabase = await createClient();
+    // 2. CARI ORDER DI DATABASE
+    const order = await prisma.order.findUnique({
+      where: { orderNumber: order_id },
+    });
 
-    const { data: order, error: findError } = await supabase
-      .from("orders")
-      .select("id, payment_status")
-      .eq("order_number", order_id)
-      .single();
-
-    if (findError || !order) {
+    if (!order) {
       console.error("❌ Order not found:", order_id);
-      return NextResponse.json(
-        { error: "Order not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
+    console.log("✅ Order found:", order.id);
+
+    // 3. TENTUKAN STATUS PEMBAYARAN
     let paymentStatus = "unpaid";
 
     if (transaction_status === "capture") {
@@ -73,26 +67,26 @@ export async function POST(req: NextRequest) {
       paymentStatus = "failed";
     }
 
-    const { error: updateError } = await supabase
-      .from("orders")
-      .update({ payment_status: paymentStatus })
-      .eq("id", order.id);
+    console.log("🔄 Updating payment status to:", paymentStatus);
 
-    if (updateError) {
-      console.error("❌ Failed to update order:", updateError);
-      return NextResponse.json(
-        { error: "Failed to update order" },
-        { status: 500 }
-      );
-    }
+    // 4. UPDATE STATUS ORDER
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { paymentStatus },
+    });
 
     console.log(`✅ Order ${order_id} updated to ${paymentStatus}`);
 
+    // 5. UPDATE PAYMENT RECORD
     if (paymentStatus === "paid") {
-      await supabase
-        .from("payments")
-        .update({ status: "success", paid_at: new Date().toISOString() })
-        .eq("order_id", order.id);
+      await prisma.payment.updateMany({
+        where: { orderId: order.id },
+        data: {
+          status: "success",
+          paidAt: new Date(),
+        },
+      });
+      console.log("✅ Payment record updated");
     }
 
     return NextResponse.json({ success: true });

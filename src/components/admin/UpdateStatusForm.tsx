@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { updateOrderStatus } from "@/lib/services/admin-actions";
 import { useToast } from "@/context/ToastContext";
 
 interface UpdateStatusFormProps {
@@ -14,7 +14,6 @@ export default function UpdateStatusForm({ orderId, currentStatus }: UpdateStatu
   const [status, setStatus] = useState(currentStatus);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
   const { showToast } = useToast();
 
   const statusOptions = [
@@ -36,21 +35,15 @@ export default function UpdateStatusForm({ orderId, currentStatus }: UpdateStatu
     }
 
     setLoading(true);
+    const result = await updateOrderStatus(orderId, status);
 
-    const { error } = await supabase
-      .from("orders")
-      .update({ status })
-      .eq("id", orderId);
-
-    if (error) {
+    if (result.success) {
+      showToast("Status order berhasil diupdate", "success");
+      router.refresh();
+    } else {
       showToast("Gagal update status", "error");
-      setLoading(false);
-      return;
     }
-
-    showToast("Status order berhasil diupdate", "success");
     setLoading(false);
-    router.refresh();
   };
 
   return (

@@ -1,28 +1,24 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { User, Mail, Phone, MapPin, Edit } from "lucide-react";
 
 export default async function CustomerProfilePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/login");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const profile = await prisma.profile.findUnique({
+    where: { id: session.user.id },
+  });
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-
-      {/* Header */}
+    <div>
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl md:text-3xl font-bold text-white">Profil</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Profil Saya</h1>
         <Link
           href="/customer/profile/edit"
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition text-sm"
@@ -38,7 +34,7 @@ export default async function CustomerProfilePage() {
           <User className="w-5 h-5 text-blue-400" />
           <div>
             <p className="text-xs text-gray-500">Nama Lengkap</p>
-            <p className="text-white">{profile?.full_name || "-"}</p>
+            <p className="text-white">{profile?.fullName || "-"}</p>
           </div>
         </div>
 
@@ -46,7 +42,7 @@ export default async function CustomerProfilePage() {
           <Mail className="w-5 h-5 text-blue-400" />
           <div>
             <p className="text-xs text-gray-500">Email</p>
-            <p className="text-white">{user.email}</p>
+            <p className="text-white">{profile?.email}</p>
           </div>
         </div>
 

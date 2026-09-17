@@ -1,18 +1,23 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getCustomerOrders } from "@/lib/services/order-service";
+import { prisma } from "@/lib/prisma";
 import OrderCard from "@/components/customer/OrderCard";
 import { Package, Inbox } from "lucide-react";
 
 export default async function CustomerOrdersPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/login");
   }
 
-  const orders = await getCustomerOrders(user.id);
+  const orders = await prisma.order.findMany({
+    where: { customerId: session.user.id },
+    include: {
+      service: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -34,13 +39,13 @@ export default async function CustomerOrdersPage() {
             <OrderCard
               key={order.id}
               id={order.id}
-              order_number={order.order_number || `ORD-${order.id.slice(0, 8)}`}
+              order_number={order.orderNumber || `ORD-${order.id.slice(0, 8)}`}
               service_name={order.service?.name || "Layanan"}
-              weight_kg={order.weight_kg}
-              total_price={order.total_price}
+              weight_kg={Number(order.weightKg)}
+              total_price={Number(order.totalPrice)}
               status={order.status}
-              pick_up_address={order.pick_up_address || "-"}
-              created_at={order.created_at}
+              pick_up_address={order.pickUpAddress || "-"}
+              created_at={order.createdAt.toISOString()}
             />
           ))}
         </div>

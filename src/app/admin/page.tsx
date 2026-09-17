@@ -1,15 +1,17 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getDashboardStats, getRecentOrders } from "@/lib/services/admin-service";
+import {
+  getDashboardStats,
+  getRecentOrders,
+} from "@/lib/services/admin-actions";
 import StatCard from "@/components/admin/StatCard";
 import RecentOrdersTable from "@/components/admin/RecentOrdersTable";
 import { Package, DollarSign, Users, Clock, TrendingUp } from "lucide-react";
 
 export default async function AdminDashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/login");
   }
 
@@ -26,13 +28,11 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white">Dashboard</h1>
         <p className="text-gray-400 mt-1">Kelola dan pantau semua aktivitas laundry</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           title="Total Orders"
@@ -62,7 +62,6 @@ export default async function AdminDashboardPage() {
         />
       </div>
 
-      {/* Recent Orders */}
       <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div>

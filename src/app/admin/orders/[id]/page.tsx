@@ -1,7 +1,12 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getAdminOrderById } from "@/lib/services/admin-order-service";
 import {
+  getAdminOrderById,
+  confirmPayment,
+} from "@/lib/services/admin-actions";
+import Link from "next/link";
+import {
+  ArrowLeft,
   Package,
   Weight,
   MapPin,
@@ -18,6 +23,7 @@ import {
 } from "lucide-react";
 import OrderStatusBadge from "@/components/admin/OrderStatusBadge";
 import UpdateStatusForm from "@/components/admin/UpdateStatusForm";
+import { revalidatePath } from "next/cache";
 
 interface AdminOrderDetailPageProps {
   params: Promise<{
@@ -27,10 +33,9 @@ interface AdminOrderDetailPageProps {
 
 export default async function AdminOrderDetailPage({ params }: AdminOrderDetailPageProps) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/login");
   }
 
@@ -41,6 +46,9 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center py-16 bg-[#1A1A1A] rounded-xl border border-[#333333]">
           <p className="text-gray-400">Order tidak ditemukan</p>
+          <Link href="/admin/orders" className="text-blue-400 hover:text-blue-300 mt-4 inline-block">
+            Kembali ke Daftar Order
+          </Link>
         </div>
       </div>
     );
@@ -66,7 +74,14 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header */}
+      <Link
+        href="/admin/orders"
+        className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition mb-6"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Kembali ke Daftar Order
+      </Link>
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Detail Order</h1>
@@ -75,15 +90,12 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
         <OrderStatusBadge status={order.status} />
       </div>
 
-      {/* Update Status Form */}
       <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6 mb-6">
         <h3 className="text-sm font-medium text-gray-400 mb-3">Update Status</h3>
         <UpdateStatusForm orderId={order.id} currentStatus={order.status} />
       </div>
 
-      {/* Order Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column */}
         <div className="space-y-4">
           <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
             <h3 className="text-sm font-medium text-gray-400 mb-4">Informasi Pesanan</h3>
@@ -127,7 +139,6 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
           </div>
         </div>
 
-        {/* Right Column */}
         <div className="space-y-4">
           <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
             <h3 className="text-sm font-medium text-gray-400 mb-4">Alamat & Catatan</h3>
@@ -164,7 +175,7 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
         </div>
       </div>
 
-      {/* PAYMENT STATUS SECTION */}
+      {/* PAYMENT STATUS */}
       <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6 mt-6">
         <h3 className="text-sm font-medium text-gray-400 mb-4">Status Pembayaran</h3>
         <div className="space-y-3">
@@ -191,21 +202,22 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
               }`}
             >
               {order.payment_status === "paid"
-                ? "Lunas"
+                ? "✅ Lunas"
                 : order.payment_status === "pending"
-                ? "Menunggu"
-                : "Belum Dibayar"}
+                ? "⏳ Menunggu"
+                : "❌ Belum Dibayar"}
             </span>
           </div>
 
-          {/* Tombol Konfirmasi Pembayaran */}
           {order.payment_status !== "paid" && order.payment_status !== "failed" && (
-            <form action={async () => {
-              'use server';
-              const { confirmPaymentByOrderId } = await import("@/lib/services/payment-service");
-              await confirmPaymentByOrderId(order.id);
-              redirect(`/admin/orders/${order.id}`);
-            }}>
+            <form
+              action={async () => {
+                "use server";
+                await confirmPayment(order.id);
+                revalidatePath(`/admin/orders/${order.id}`);
+                redirect(`/admin/orders/${order.id}`);
+              }}
+            >
               <button
                 type="submit"
                 className="w-full mt-3 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition flex items-center justify-center gap-2"

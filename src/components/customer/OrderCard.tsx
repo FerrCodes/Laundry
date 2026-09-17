@@ -147,7 +147,7 @@ export default function OrderCard({
 
         {/* Right - Arrow */}
         <div className="flex items-center gap-2 text-blue-400 group-hover:text-blue-300 transition">
-          <span className="text-sm font-medium">Detail</span>
+          <span className="text-sm font-medium">Lihat Detail</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </div>
       </div>

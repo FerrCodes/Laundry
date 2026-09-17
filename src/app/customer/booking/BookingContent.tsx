@@ -2,8 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Package, Weight, MapPin, FileText, Clock, QrCode, Wallet, DollarSign } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import {
+  Package,
+  Weight,
+  MapPin,
+  FileText,
+  Clock,
+  QrCode,
+  Wallet,
+  DollarSign,
+} from "lucide-react";
+import { getActiveServices } from "@/lib/services/service-actions";
+import { createOrder } from "@/lib/actions/order-actions";
 import { useToast } from "@/context/ToastContext";
 import Button from "@/components/ui/Button";
 
@@ -16,13 +26,7 @@ interface Service {
   category: string;
 }
 
-// Tipe untuk user
-interface User {
-  id: string;
-  email: string;
-}
-
-export default function BookingPage() {
+export default function BookingContent() {
   const [services, setServices] = useState<Service[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [weight, setWeight] = useState<number>(1);
@@ -30,54 +34,44 @@ export default function BookingPage() {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingServices, setLoadingServices] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<string>("qris");
+  const [paymentMethod, setPaymentMethod] = useState<"qris" | "ewallet" | "cash">("qris");
+
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClient();
   const { showToast } = useToast();
 
-  // Ambil service ID dari URL
   const serviceId = searchParams.get("service");
 
-  // Ambil data user & services
   useEffect(() => {
     const fetchData = async () => {
-      // Get user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/auth/login");
-        return;
-      }
-      setUser({ id: user.id, email: user.email || "" });
+      try {
+        const servicesData = await getActiveServices();
 
-      // Get services
-      const { data: servicesData, error } = await supabase
-        .from("laundry_services")
-        .select("*")
-        .eq("is_active", true)
-        .order("price_per_kg", { ascending: true });
+        const formattedServices: Service[] = servicesData.map((s) => ({
+          id: s.id,
+          name: s.name,
+          description: s.description || "",
+          price_per_kg: Number(s.pricePerKg),
+          duration_hours: s.durationHours,
+          category: s.category,
+        }));
 
-      if (error) {
+        setServices(formattedServices);
+
+        if (serviceId) {
+          const found = formattedServices.find((s) => s.id === serviceId);
+          if (found) setSelectedService(found);
+        }
+      } catch (error) {
+        console.error("Error fetching services:", error);
         showToast("Gagal memuat layanan", "error");
+      } finally {
         setLoadingServices(false);
-        return;
       }
-
-      setServices(servicesData || []);
-
-      // Jika ada serviceId di URL, pilih otomatis
-      if (serviceId && servicesData) {
-        const found = servicesData.find((s) => s.id === serviceId);
-        if (found) setSelectedService(found);
-      }
-
-      setLoadingServices(false);
     };
 
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serviceId, router, showToast]);
+  }, [serviceId, showToast]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -109,45 +103,23 @@ export default function BookingPage() {
 
     const totalPrice = selectedService.price_per_kg * weight;
 
-    // Insert order ke database
-    const { data, error } = await supabase
-      .from("orders")
-      .insert({
-        customer_id: user?.id,
-        service_id: selectedService.id,
-        weight_kg: weight,
-        total_price: totalPrice,
-        notes: notes.trim() || null,
-        pick_up_address: address.trim(),
-        status: "pending",
-        payment_method: paymentMethod,
-        payment_status: "unpaid",
-        order_number: `LAU-${Date.now().toString().slice(-8)}`,
-      })
-      .select()
-      .single();
+    const result = await createOrder({
+      serviceId: selectedService.id,
+      weightKg: weight,
+      totalPrice: totalPrice,
+      notes: notes.trim(),
+      pickUpAddress: address.trim(),
+      paymentMethod: paymentMethod,
+    });
 
-    // Setelah order berhasil, buat payment record
-    if (data) {
-      await supabase.from("payments").insert({
-        order_id: data.id,
-        amount: totalPrice,
-        payment_method: paymentMethod,
-        status: "pending",
-        qris_code: `QRIS-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-      });
-    }
-
-    if (error) {
-      console.error("Error creating order:", error);
-      console.error("Error details:", error.message, error.details, error.hint);
-      showToast("Gagal membuat pesanan: " + error.message, "error");
+    if (!result.success) {
+      showToast(result.error || "Gagal membuat pesanan", "error");
       setLoading(false);
       return;
     }
 
-    showToast("Pesanan berhasil dibuat!", "success");
-    router.push(`/customer/orders/${data.id}`);
+    showToast("🎉 Pesanan berhasil dibuat!", "success");
+    router.push(`/customer/orders/${result.orderId}`);
     router.refresh();
   };
 
@@ -168,13 +140,10 @@ export default function BookingPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Back Button */}
-
       <h1 className="text-3xl font-bold text-white mb-2">Buat Pesanan Laundry</h1>
       <p className="text-gray-400 mb-8">Isi form di bawah untuk memesan laundry kiloan</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Form */}
         <div className="lg:col-span-2 space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Pilih Layanan */}
@@ -188,14 +157,11 @@ export default function BookingPage() {
                     key={service.id}
                     type="button"
                     onClick={() => setSelectedService(service)}
-                    className={`
-                      text-left p-4 rounded-xl border-2 transition-all duration-200
-                      ${
-                        selectedService?.id === service.id
-                          ? "border-blue-500 bg-blue-500/10"
-                          : "border-[#333333] hover:border-[#555555]"
-                      }
-                    `}
+                    className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                      selectedService?.id === service.id
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-[#333333] hover:border-[#555555]"
+                    }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-white">{service.name}</span>
@@ -230,7 +196,6 @@ export default function BookingPage() {
                     required
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Minimal 0.5 kg</p>
               </div>
 
               <div>
@@ -243,59 +208,9 @@ export default function BookingPage() {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="Masukkan alamat lengkap untuk penjemputan"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#0A0A0A] border border-[#333333] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-3 py-2.5 bg-[#0A0A0A] border border-[#333333] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-20"
                     required
                   />
-                </div>
-              </div>
-
-              {/* Metode Pembayaran */}
-              <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
-                <label className="block text-sm font-medium text-gray-300 mb-3">
-                  Metode Pembayaran
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("qris")}
-                    className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
-                      paymentMethod === "qris"
-                        ? "border-blue-500 bg-blue-500/10"
-                        : "border-[#333333] hover:border-[#555555]"
-                    }`}
-                  >
-                    <QrCode className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === "qris" ? "text-blue-400" : "text-gray-400"}`} />
-                    <p className="text-sm font-medium text-white">QRIS</p>
-                    <p className="text-xs text-gray-500">Scan & Bayar</p>
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("ewallet")}
-                    className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
-                      paymentMethod === "ewallet"
-                        ? "border-blue-500 bg-blue-500/10"
-                        : "border-[#333333] hover:border-[#555555]"
-                    }`}
-                  >
-                    <Wallet className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === "ewallet" ? "text-blue-400" : "text-gray-400"}`} />
-                    <p className="text-sm font-medium text-white">E-Wallet</p>
-                    <p className="text-xs text-gray-500">OVO, Gopay, DANA</p>
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("cash")}
-                    className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
-                      paymentMethod === "cash"
-                        ? "border-blue-500 bg-blue-500/10"
-                        : "border-[#333333] hover:border-[#555555]"
-                    }`}
-                  >
-                    <DollarSign className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === "cash" ? "text-blue-400" : "text-gray-400"}`} />
-                    <p className="text-sm font-medium text-white">Cash</p>
-                    <p className="text-xs text-gray-500">Bayar Langsung</p>
-                  </button>
                 </div>
               </div>
 
@@ -308,10 +223,57 @@ export default function BookingPage() {
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Catatan khusus untuk laundry (misal: jangan pakai pewangi, dll)"
-                    className="w-full pl-10 pr-3 py-2.5 bg-[#0A0A0A] border border-[#333333] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Catatan khusus untuk laundry"
+                    className="w-full pl-10 pr-3 py-2.5 bg-[#0A0A0A] border border-[#333333] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-20"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Metode Pembayaran */}
+            <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                Metode Pembayaran
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("qris")}
+                  className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
+                    paymentMethod === "qris"
+                      ? "border-blue-500 bg-blue-500/10"
+                      : "border-[#333333] hover:border-[#555555]"
+                  }`}
+                >
+                  <QrCode className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === "qris" ? "text-blue-400" : "text-gray-400"}`} />
+                  <p className="text-sm font-medium text-white">QRIS</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("ewallet")}
+                  className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
+                    paymentMethod === "ewallet"
+                      ? "border-blue-500 bg-blue-500/10"
+                      : "border-[#333333] hover:border-[#555555]"
+                  }`}
+                >
+                  <Wallet className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === "ewallet" ? "text-blue-400" : "text-gray-400"}`} />
+                  <p className="text-sm font-medium text-white">E-Wallet</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("cash")}
+                  className={`p-4 rounded-xl border-2 text-center transition-all duration-200 ${
+                    paymentMethod === "cash"
+                      ? "border-blue-500 bg-blue-500/10"
+                      : "border-[#333333] hover:border-[#555555]"
+                  }`}
+                >
+                  <DollarSign className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === "cash" ? "text-blue-400" : "text-gray-400"}`} />
+                  <p className="text-sm font-medium text-white">Cash</p>
+                </button>
               </div>
             </div>
 

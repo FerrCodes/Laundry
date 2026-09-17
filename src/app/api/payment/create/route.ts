@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import midtransClient from "midtrans-client";
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await auth();
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { orderId } = await req.json();
 
     if (!orderId) {
@@ -13,33 +20,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    // Ambil data order dari Prisma
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        customer: true,
+      },
+    });
 
-    // Ambil data order (TANPA EMAIL)
-    const { data: order, error } = await supabase
-      .from("orders")
-      .select(`
-        id,
-        order_number,
-        total_price,
-        customer_id,
-        profiles!customer_id (
-          full_name
-        )
-      `)
-      .eq("id", orderId)
-      .single();
-
-    if (error || !order) {
-      console.error("❌ Order not found:", error);
-      return NextResponse.json(
-        { error: "Order not found" },
-        { status: 404 }
-      );
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    const profile = order.profiles?.[0] || {};
-    const customerName = profile.full_name || "Customer";
+    // Pastikan order milik user yang login
+    if (order.customerId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     // Inisialisasi Snap
     const snap = new midtransClient.Snap({
@@ -51,19 +47,19 @@ export async function POST(req: NextRequest) {
     // Parameter transaksi
     const parameter = {
       transaction_details: {
-        order_id: order.order_number,
-        gross_amount: order.total_price,
+        order_id: order.orderNumber,
+        gross_amount: Number(order.totalPrice),
       },
       customer_details: {
-        first_name: customerName,
-        email: "customer@example.com",
+        first_name: order.customer.fullName,
+        email: order.customer.email,
       },
       item_details: [
         {
           id: order.id,
-          price: order.total_price,
+          price: Number(order.totalPrice),
           quantity: 1,
-          name: `Laundry Order #${order.order_number}`,
+          name: `Laundry Order #${order.orderNumber}`,
         },
       ],
       callbacks: {

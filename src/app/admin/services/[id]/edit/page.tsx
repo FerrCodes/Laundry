@@ -1,8 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import ServiceForm from "@/components/admin/ServiceForm";
-import { getServiceById } from "@/lib/services/admin-service-service";
+import { getServiceById } from "@/lib/services/admin-service-actions";
 
 interface EditServicePageProps {
   params: Promise<{
@@ -12,10 +13,9 @@ interface EditServicePageProps {
 
 export default async function EditServicePage({ params }: EditServicePageProps) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/login");
   }
 
@@ -36,6 +36,14 @@ export default async function EditServicePage({ params }: EditServicePageProps) 
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      <Link
+        href="/admin/services"
+        className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition mb-6"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Kembali ke Daftar Layanan
+      </Link>
+
       <h1 className="text-2xl font-bold text-white mb-2">Edit Layanan</h1>
       <p className="text-gray-400 mb-6">Ubah informasi layanan laundry</p>
 

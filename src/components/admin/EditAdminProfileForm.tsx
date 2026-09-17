@@ -2,22 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Phone, MapPin, Save } from "lucide-react";
+import { User, Phone, Save } from "lucide-react";
 import { updateProfile } from "@/lib/actions/profile-actions";
 import { useToast } from "@/context/ToastContext";
 
-interface EditProfileFormProps {
+interface EditAdminProfileFormProps {
   profile: {
     fullName: string;
     phone: string | null;
-    address: string | null;
   } | null;
+  userId: string;
 }
 
-export default function EditProfileForm({ profile }: EditProfileFormProps) {
+export default function EditAdminProfileForm({ profile }: EditAdminProfileFormProps) {
   const [fullName, setFullName] = useState(profile?.fullName || "");
   const [phone, setPhone] = useState(profile?.phone || "");
-  const [address, setAddress] = useState(profile?.address || "");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { showToast } = useToast();
@@ -35,7 +34,6 @@ export default function EditProfileForm({ profile }: EditProfileFormProps) {
     const result = await updateProfile({
       fullName: fullName.trim(),
       phone: phone.trim() || null,
-      address: address.trim() || null,
     });
 
     if (!result.success) {
@@ -46,7 +44,7 @@ export default function EditProfileForm({ profile }: EditProfileFormProps) {
 
     showToast("Profil berhasil diupdate!", "success");
     setLoading(false);
-    router.push("/customer/profile");
+    router.push("/admin/settings");
     router.refresh();
   };
 
@@ -85,24 +83,10 @@ export default function EditProfileForm({ profile }: EditProfileFormProps) {
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1">Alamat</label>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
-          <textarea
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Masukkan alamat lengkap"
-            rows={3}
-            className="w-full pl-10 pr-3 py-2.5 bg-[#0A0A0A] border border-[#333333] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          />
-        </div>
-      </div>
-
       <div className="flex gap-3 pt-2">
         <button
           type="button"
-          onClick={() => router.push("/customer/profile")}
+          onClick={() => router.push("/admin/settings")}
           className="px-6 py-2.5 bg-[#1A1A1A] hover:bg-[#2A2A2A] text-white font-medium rounded-xl border border-[#333333] transition"
         >
           Batal

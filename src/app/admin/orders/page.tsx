@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getAllOrders } from "@/lib/services/admin-order-service";
+import { getAllOrders } from "@/lib/services/admin-actions";
 import OrderStatusBadge from "@/components/admin/OrderStatusBadge";
 import Link from "next/link";
 import { Eye, Package, Search } from "lucide-react";
@@ -14,10 +14,9 @@ interface AdminOrdersPageProps {
 
 export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageProps) {
   const { status, search } = await searchParams;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/login");
   }
 
@@ -53,7 +52,6 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
     { value: "cancelled", label: "Dibatalkan" },
   ];
 
-  // Filter berdasarkan search (jika ada)
   const filteredOrders = search
     ? orders.filter(
         (order) =>
@@ -64,7 +62,6 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
 
   return (
     <div>
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-white">Daftar Order</h1>
@@ -72,13 +69,10 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
         </div>
         <div className="flex items-center gap-2">
           <Package className="w-5 h-5 text-gray-400" />
-          <span className="text-sm text-gray-400">
-            {filteredOrders.length} order
-          </span>
+          <span className="text-sm text-gray-400">{filteredOrders.length} order</span>
         </div>
       </div>
 
-      {/* Filter Status - Menggunakan Link */}
       <div className="flex flex-wrap gap-2 mb-6">
         {statusOptions.map((opt) => {
           const isActive = (status || "all") === opt.value;
@@ -86,13 +80,11 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
             <Link
               key={opt.value}
               href={`/admin/orders?status=${opt.value}${search ? `&search=${search}` : ""}`}
-              className={`
-                px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200
-                ${isActive
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                isActive
                   ? "bg-blue-600 text-white"
                   : "bg-[#1A1A1A] text-gray-400 hover:text-white hover:bg-[#2A2A2A] border border-[#333333]"
-                }
-              `}
+              }`}
             >
               {opt.label}
             </Link>
@@ -100,12 +92,9 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
         })}
       </div>
 
-      {/* Search */}
       <div className="mb-6">
         <form method="GET" className="flex gap-2">
-          {status && status !== "all" && (
-            <input type="hidden" name="status" value={status} />
-          )}
+          {status && status !== "all" && <input type="hidden" name="status" value={status} />}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
@@ -125,7 +114,6 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
         </form>
       </div>
 
-      {/* Table */}
       <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -152,16 +140,10 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
                 filteredOrders.map((order) => (
                   <tr key={order.id} className="border-b border-[#333333]/50 hover:bg-[#1A1A1A] transition">
                     <td className="py-3 px-4">
-                      <span className="font-mono text-xs text-gray-400">
-                        {order.order_number}
-                      </span>
+                      <span className="font-mono text-xs text-gray-400">{order.order_number}</span>
                     </td>
-                    <td className="py-3 px-4 text-white hidden sm:table-cell">
-                      {order.customer_name}
-                    </td>
-                    <td className="py-3 px-4 text-gray-300 hidden md:table-cell">
-                      {order.service_name}
-                    </td>
+                    <td className="py-3 px-4 text-white hidden sm:table-cell">{order.customer_name}</td>
+                    <td className="py-3 px-4 text-gray-300 hidden md:table-cell">{order.service_name}</td>
                     <td className="py-3 px-4 text-gray-400 text-xs hidden lg:table-cell">
                       {formatDate(order.created_at)}
                     </td>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Power, PowerOff } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { toggleServiceStatus } from "@/lib/services/admin-service-actions";
 import { useToast } from "@/context/ToastContext";
 
 interface ToggleServiceButtonProps {
@@ -14,18 +14,13 @@ interface ToggleServiceButtonProps {
 export default function ToggleServiceButton({ serviceId, isActive }: ToggleServiceButtonProps) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
   const { showToast } = useToast();
 
   const handleToggle = async () => {
     setLoading(true);
+    const result = await toggleServiceStatus(serviceId, !isActive);
 
-    const { error } = await supabase
-      .from("laundry_services")
-      .update({ is_active: !isActive })
-      .eq("id", serviceId);
-
-    if (error) {
+    if (!result.success) {
       showToast("Gagal mengubah status", "error");
       setLoading(false);
       return;

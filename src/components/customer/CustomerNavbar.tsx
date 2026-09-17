@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, Sofa, User, LogOut, Package, Home, LayoutGrid } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { signOut } from "next-auth/react";
 import { useToast } from "@/context/ToastContext";
 import Modal from "@/components/ui/Modal";
 
@@ -15,7 +15,6 @@ export default function CustomerNavbar() {
   const [loading, setLoading] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
   const { showToast } = useToast();
 
   const navigation = [
@@ -27,13 +26,13 @@ export default function CustomerNavbar() {
   const isActive = (href: string) => pathname === href;
 
   const handleLogout = async () => {
-    setLoading(true);
-    await supabase.auth.signOut();
-    showToast("Berhasil logout", "success");
-    setIsLogoutModalOpen(false);
-    setLoading(false);
-    router.push("/auth/login");
-    router.refresh();
+  setLoading(true);
+  await signOut({ redirect: false });
+  showToast("Berhasil logout", "success");
+  setIsLogoutModalOpen(false);
+  setLoading(false);
+  router.push("/auth/login");
+  router.refresh();
   };
 
   return (

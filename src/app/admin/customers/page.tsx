@@ -1,14 +1,13 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getAllCustomers } from "@/lib/services/admin-customer-service";
-import { Users, } from "lucide-react";
+import { getAllCustomers } from "@/lib/services/admin-customer-actions";
+import { Users } from "lucide-react";
 import Link from "next/link";
 
 export default async function AdminCustomersPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/login");
   }
 
@@ -32,7 +31,6 @@ export default async function AdminCustomersPage() {
 
   return (
     <div>
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-white">Daftar Customer</h1>
@@ -44,7 +42,6 @@ export default async function AdminCustomersPage() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -73,9 +70,7 @@ export default async function AdminCustomersPage() {
                     <td className="py-3 px-4">
                       <span className="font-medium text-white">{customer.full_name}</span>
                     </td>
-                    <td className="py-3 px-4 text-gray-300 hidden sm:table-cell">
-                      {customer.email}
-                    </td>
+                    <td className="py-3 px-4 text-gray-300 hidden sm:table-cell">{customer.email}</td>
                     <td className="py-3 px-4 text-gray-400 hidden md:table-cell">
                       {customer.phone || "-"}
                     </td>

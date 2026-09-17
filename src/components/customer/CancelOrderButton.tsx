@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/context/ToastContext";
+import { cancelOrder } from "@/lib/actions/order-actions";
 import Modal from "@/components/ui/Modal";
 
 interface CancelOrderButtonProps {
@@ -15,19 +15,14 @@ export default function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
   const { showToast } = useToast();
 
   const handleCancel = async () => {
     setLoading(true);
+    const result = await cancelOrder(orderId);
 
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: "cancelled" })
-      .eq("id", orderId);
-
-    if (error) {
-      showToast("Gagal membatalkan pesanan", "error");
+    if (!result.success) {
+      showToast(result.error || "Gagal membatalkan pesanan", "error");
       setLoading(false);
       setIsModalOpen(false);
       return;
@@ -43,12 +38,7 @@ export default function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className={`
-          flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
-          bg-red-500/10 hover:bg-red-500/20 text-red-400
-          border border-red-500/30 hover:border-red-500/50
-          transition-all duration-200
-        `}
+        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 hover:border-red-500/50 transition-all duration-200"
       >
         <AlertTriangle className="w-4 h-4" />
         Batalkan Pesanan
