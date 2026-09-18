@@ -140,7 +140,7 @@ export default function BookingContent() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-white mb-2">Buat Pesanan Laundry</h1>
+      <h1 className="text-3xl font-bold text-white mb-2">Buat Pesanan Baru</h1>
       <p className="text-gray-400 mb-8">Isi form di bawah untuk memesan laundry kiloan</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

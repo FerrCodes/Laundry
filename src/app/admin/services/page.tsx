@@ -36,7 +36,7 @@ export default async function AdminServicesPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-white">Kelola Semua Layanan</h1>
+          <h1 className="text-3xl font-bold text-white">Layanan</h1>
           <p className="text-gray-400 mt-1">Kelola semua layanan yang tersedia atau Aktifkan, Edit, Tambah dan Hapus.</p>
         </div>
         <Link
