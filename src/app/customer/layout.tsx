@@ -1,11 +1,26 @@
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import CustomerNavbar from "@/components/customer/CustomerNavbar";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
-export default function CustomerLayout({
+export default async function CustomerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+
+  const session = await auth();
+
+  // Belum login → ke halaman login
+  if (!session?.user) {
+    redirect("/auth/login");
+  }
+
+  // Admin → ke halaman admin
+  //if (session.user.role === "admin") {
+  //  redirect("/admin");
+  //}
+
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
       <CustomerNavbar />
