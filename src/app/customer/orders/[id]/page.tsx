@@ -79,8 +79,6 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
   const canCancel = order.status === "pending";
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -193,14 +191,11 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             <form
               action={async () => {
                 "use server";
-                const response = await fetch(`${appUrl}/api/payment/create`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ orderId: order.id }),
-                });
-                const data = await response.json();
-                if (data.redirect_url) {
-                  redirect(data.redirect_url);
+                const { createPaymentToken } = await import("@/lib/actions/payment-actions");
+                const result = await createPaymentToken(order.id);
+
+                if (result.success && result.redirectUrl) {
+                  redirect(result.redirectUrl);
                 }
               }}
             >
@@ -214,7 +209,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           </div>
         ) : (
           <div className="text-center py-4">
-            <p className="text-green-400 text-sm">✅ Pembayaran sudah lunas</p>
+            <p className="text-green-400 text-sm">Pembayaran sudah lunas</p>
           </div>
         )}
       </div>

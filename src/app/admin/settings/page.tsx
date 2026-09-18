@@ -18,14 +18,14 @@ export default async function AdminSettingsPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold text-white mb-2">Pengaturan</h1>
-      <p className="text-gray-400 mb-8">Kelola pengaturan aplikasi dan akun Anda</p>
+      <p className="text-gray-400 mb-8">Kelola dan atur Profil, Password, Toko dan Status Pembayaran.</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <User className="w-5 h-5 text-blue-400" />
-              <h3 className="text-lg font-semibold text-white">Profil Admin</h3>
+              <h3 className="text-lg font-semibold text-white">Profil</h3>
             </div>
             <Link
               href="/admin/settings/profile"
@@ -75,7 +75,7 @@ export default async function AdminSettingsPage() {
             </Link>
           </div>
           <p className="text-sm text-gray-400">
-            Ubah password akun admin Anda untuk keamanan.
+            Ubah password akun admin untuk keamanan.
           </p>
         </div>
       </div>

@@ -22,8 +22,9 @@ export async function createOrder(data: {
     // Generate order number
     const date = new Date();
     const dateStr = date.toISOString().slice(2, 10).replace(/-/g, "");
-    const count = await prisma.order.count();
-    const orderNumber = `LAU-${dateStr}-${(count + 1000).toString()}`;
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+    const orderNumber = `LAU-${dateStr}-${timestamp}${random}`;
 
     const order = await prisma.order.create({
       data: {

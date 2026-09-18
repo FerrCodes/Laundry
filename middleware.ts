@@ -6,12 +6,18 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const role = req.auth?.user?.role;
 
-  // 🔥 DEBUG
-  console.log("🔍 Path:", nextUrl.pathname);
-  console.log("🔍 Logged in:", isLoggedIn);
-  console.log("🔍 Role:", role);
-
   const pathname = nextUrl.pathname;
+
+  // 🔥 PENTING: Skip API routes, NextAuth routes, & static files
+  if (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
+  }
+
   const isAuthRoute = pathname.startsWith("/auth");
   const isAdminRoute = pathname.startsWith("/admin");
   const isCustomerRoute = pathname.startsWith("/customer");

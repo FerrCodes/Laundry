@@ -30,7 +30,7 @@ export default async function AdminDashboardPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-        <p className="text-gray-400 mt-1">Kelola dan pantau semua aktivitas laundry</p>
+        <p className="text-gray-400 mt-1">Kelola dan pantau semua aktivitas</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -66,7 +66,7 @@ export default async function AdminDashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold text-white">Order Terbaru</h2>
-            <p className="text-sm text-gray-400">5 order terakhir</p>
+            <p className="text-sm text-gray-400">Menampilkan 5 order terakhir</p>
           </div>
           <TrendingUp className="w-5 h-5 text-blue-400" />
         </div>

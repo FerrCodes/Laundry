@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 
 interface RecentOrder {
   id: string;

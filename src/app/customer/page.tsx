@@ -20,7 +20,7 @@ export default async function CustomerPage() {
       <section>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-white">Layanan Laundry</h2>
+            <h2 className="text-2xl font-bold text-white">Layanan</h2>
             <p className="text-gray-400 text-sm">Pilih layanan yang sesuai dengan kebutuhan Anda</p>
           </div>
           <span className="text-sm text-gray-500">{services.length} layanan tersedia</span>

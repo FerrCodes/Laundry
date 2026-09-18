@@ -34,7 +34,7 @@ export default async function AdminCustomersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-white">Daftar Customer</h1>
-          <p className="text-gray-400 mt-1">Kelola semua customer laundry</p>
+          <p className="text-gray-400 mt-1">Lihat semua customer yang terdaftar dan lihat secara detail.</p>
         </div>
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-gray-400" />

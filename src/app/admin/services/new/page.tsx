@@ -11,8 +11,8 @@ export default async function NewServicePage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-white mb-2">Tambah Layanan Baru</h1>
-      <p className="text-gray-400 mb-6">Isi form di bawah untuk menambahkan layanan laundry</p>
+      <h1 className="text-2xl font-bold text-white mb-2">Buat Baru</h1>
+      <p className="text-gray-400 mb-6">Isi form di bawah untuk menambahkan layanan baru</p>
       <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
         <ServiceForm />
       </div>

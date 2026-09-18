@@ -189,10 +189,10 @@ export default async function AdminOrderDetailPage({ params }: AdminOrderDetailP
               }`}
             >
               {order.payment_status === "paid"
-                ? "✅ Lunas"
+                ? "Lunas"
                 : order.payment_status === "pending"
-                ? "⏳ Menunggu"
-                : "❌ Belum Dibayar"}
+                ? "Menunggu"
+                : "Belum Dibayar"}
             </span>
           </div>
 

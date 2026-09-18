@@ -42,9 +42,9 @@ export default function Breadcrumb() {
       } else if (segment === "orders") {
         label = isAdmin ? "Daftar Order" : "Riwayat Pesanan";
       } else if (segment === "booking") {
-        label = "Booking Laundry";
+        label = "Booking";
       } else if (segment === "services") {
-        label = isAdmin ? "Kelola Layanan" : "Layanan Laundry";
+        label = isAdmin ? "Kelola Layanan" : "Layanan";
       } else if (segment === "customers") {
         label = "Daftar Customer";
       } else if (segment === "settings") {

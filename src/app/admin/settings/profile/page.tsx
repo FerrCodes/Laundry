@@ -16,8 +16,8 @@ export default async function EditAdminProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-2">Edit Profil Admin</h1>
-      <p className="text-gray-400 mb-8">Perbarui informasi akun admin Anda</p>
+      <h1 className="text-2xl font-bold text-white mb-2">Edit</h1>
+      <p className="text-gray-400 mb-8">Perbarui informasi akun admin</p>
       <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
         <EditAdminProfileForm
           profile={

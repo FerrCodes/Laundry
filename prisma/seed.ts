@@ -12,11 +12,11 @@ async function main() {
   const adminPassword = await bcrypt.hash("admin123", 10);
 
   const admin = await prisma.profile.upsert({
-    where: { email: "admin@laundry.com" },
+    where: { email: "ferdiantoferi1303@gmail.com" },
     update: {},
     create: {
       email: "admin@laundry.com",
-      fullName: "Admin Laundry",
+      fullName: "Admin",
       phone: "081234567890",
       address: "Kantor Pusat",
       role: "admin",

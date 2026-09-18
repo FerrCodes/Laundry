@@ -65,7 +65,7 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-white">Daftar Order</h1>
-          <p className="text-gray-400 mt-1">Kelola semua order laundry</p>
+          <p className="text-gray-400 mt-1">Kelola dan filter semua orderan dari semua customer</p>
         </div>
         <div className="flex items-center gap-2">
           <Package className="w-5 h-5 text-gray-400" />

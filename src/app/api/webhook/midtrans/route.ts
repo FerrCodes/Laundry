@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
+export async function GET() {
+  return NextResponse.json({ message: "Webhook aktif" });
+}
+
 export async function POST(req: NextRequest) {
   console.log("🚀 Webhook endpoint dipanggil!");
 
@@ -18,7 +22,7 @@ export async function POST(req: NextRequest) {
       signature_key,
     } = body;
 
-    // 1. VERIFIKASI SIGNATURE
+    // Verifikasi signature
     const serverKey = process.env.MIDTRANS_SERVER_KEY!;
     const hash = crypto
       .createHash("sha512")
@@ -32,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     console.log("✅ Signature verified");
 
-    // 2. CARI ORDER DI DATABASE
+    // Cari order
     const order = await prisma.order.findUnique({
       where: { orderNumber: order_id },
     });
@@ -42,59 +46,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    console.log("✅ Order found:", order.id);
-
-    // 3. TENTUKAN STATUS PEMBAYARAN
+    // Tentukan status pembayaran
     let paymentStatus = "unpaid";
-
-    if (transaction_status === "capture") {
-      if (fraud_status === "accept") {
-        paymentStatus = "paid";
-      }
+    if (transaction_status === "capture" && fraud_status === "accept") {
+      paymentStatus = "paid";
     } else if (transaction_status === "settlement") {
       paymentStatus = "paid";
-    } else if (
-      transaction_status === "pending" ||
-      transaction_status === "challenge"
-    ) {
+    } else if (transaction_status === "pending") {
       paymentStatus = "pending";
-    } else if (
-      transaction_status === "deny" ||
-      transaction_status === "cancel" ||
-      transaction_status === "expire" ||
-      transaction_status === "failure"
-    ) {
+    } else if (["deny", "cancel", "expire", "failure"].includes(transaction_status)) {
       paymentStatus = "failed";
     }
 
-    console.log("🔄 Updating payment status to:", paymentStatus);
-
-    // 4. UPDATE STATUS ORDER
+    // Update order
     await prisma.order.update({
       where: { id: order.id },
       data: { paymentStatus },
     });
 
-    console.log(`✅ Order ${order_id} updated to ${paymentStatus}`);
-
-    // 5. UPDATE PAYMENT RECORD
+    // Update payment record
     if (paymentStatus === "paid") {
       await prisma.payment.updateMany({
         where: { orderId: order.id },
-        data: {
-          status: "success",
-          paidAt: new Date(),
-        },
+        data: { status: "success", paidAt: new Date() },
       });
-      console.log("✅ Payment record updated");
     }
 
+    console.log(`✅ Order ${order_id} updated to ${paymentStatus}`);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("❌ Webhook error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

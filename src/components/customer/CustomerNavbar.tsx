@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname,  } from "next/navigation";
 import { Menu, X, Sofa, User, LogOut, Package, Home, LayoutGrid } from "lucide-react";
 import { signOut } from "next-auth/react";
-import { useToast } from "@/context/ToastContext";
 import Modal from "@/components/ui/Modal";
 
 export default function CustomerNavbar() {
@@ -14,12 +13,10 @@ export default function CustomerNavbar() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
-  const { showToast } = useToast();
 
   const navigation = [
-    { name: "Home", href: "/customer", icon: Home },
-    { name: "Layanan", href: "/customer/services", icon: LayoutGrid },
+    { name: "Beranda", href: "/customer", icon: Home },
+    { name: "Pilihan Layanan", href: "/customer/services", icon: LayoutGrid },
     { name: "Order Saya", href: "/customer/orders", icon: Package },
   ];
 
@@ -27,13 +24,13 @@ export default function CustomerNavbar() {
 
   const handleLogout = async () => {
   setLoading(true);
-  await signOut({ redirect: false });
-  showToast("Berhasil logout", "success");
-  setIsLogoutModalOpen(false);
-  setLoading(false);
-  router.push("/auth/login");
-  router.refresh();
-  };
+  try {
+    await signOut({ callbackUrl: "/auth/login" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    setLoading(false);
+  }
+};
 
   return (
     <>

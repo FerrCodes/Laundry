@@ -31,8 +31,8 @@ export default async function EditServicePage({ params }: EditServicePageProps) 
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-white mb-2">Edit Layanan</h1>
-      <p className="text-gray-400 mb-6">Ubah informasi layanan laundry</p>
+      <h1 className="text-2xl font-bold text-white mb-2">Edit</h1>
+      <p className="text-gray-400 mb-6">Ubah informasi layanan</p>
       <div className="bg-[#1A1A1A] border border-[#333333] rounded-xl p-6">
         <ServiceForm initialData={service} isEditing />
       </div>
