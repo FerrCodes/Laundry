@@ -8,22 +8,12 @@ export default auth((req) => {
 
   const pathname = nextUrl.pathname;
 
-  // 🔥 PENTING: Skip API routes, NextAuth routes, & static files
-  if (
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.includes(".")
-  ) {
-    return NextResponse.next();
-  }
-
   const isAuthRoute = pathname.startsWith("/auth");
   const isAdminRoute = pathname.startsWith("/admin");
   const isCustomerRoute = pathname.startsWith("/customer");
   const isRoot = pathname === "/";
 
-  // 1. Root path
+  // Root path
   if (isRoot) {
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL("/auth/login", nextUrl));
@@ -34,12 +24,12 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/customer", nextUrl));
   }
 
-  // 2. Belum login & akses protected
+  // Belum login & akses protected
   if (!isLoggedIn && (isAdminRoute || isCustomerRoute)) {
     return NextResponse.redirect(new URL("/auth/login", nextUrl));
   }
 
-  // 3. Sudah login & akses auth
+  // Sudah login & akses auth
   if (isLoggedIn && isAuthRoute) {
     if (role === "admin") {
       return NextResponse.redirect(new URL("/admin", nextUrl));
@@ -47,12 +37,12 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/customer", nextUrl));
   }
 
-  // 4. Admin akses customer
+  // Admin akses customer
   if (isLoggedIn && role === "admin" && isCustomerRoute) {
     return NextResponse.redirect(new URL("/admin", nextUrl));
   }
 
-  // 5. Customer akses admin
+  // Customer akses admin
   if (isLoggedIn && role === "customer" && isAdminRoute) {
     return NextResponse.redirect(new URL("/customer", nextUrl));
   }
