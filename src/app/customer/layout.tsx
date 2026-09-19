@@ -17,9 +17,9 @@ export default async function CustomerLayout({
   }
 
   // Admin → ke halaman admin
-  //if (session.user.role === "admin") {
-  //  redirect("/admin");
-  //}
+  if (session.user.role === "admin") {
+    redirect("/admin");
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A]">

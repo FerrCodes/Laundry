@@ -18,6 +18,5 @@ export default async function HomePage() {
     redirect("/customer");
   }
 
-  // Kalau role tidak dikenal, redirect ke login
   redirect("/auth/login");
 }
